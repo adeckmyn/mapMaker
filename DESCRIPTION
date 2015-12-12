@@ -1,0 +1,10 @@
+Package: mapMaker
+Title: Create map databases from Natural Earth data
+Version: 0.0-1
+Date: 2015-12-03
+Author: Alex Deckmyn
+Description: A set of routines to extract map data from Natural Earth
+Depends: maptools, sp
+LazyLoad: yes
+License: GPL2
+Maintainer: Alex Deckmyn <alex.deckmyn@meteo.be>
