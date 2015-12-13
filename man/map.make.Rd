@@ -24,7 +24,7 @@ map.LR(ww)
 }
 \value{ All these functions, except \code{map.valence}, return an indexed data set of a map. After every step, the details may be different but the format is the same:
 \itemize{
-  \item[names: the names of all the polygons.}
+  \item{names: the names of all the polygons.}
   \item{line: all the lines in the set, with indexes and some extra information:
   \itemize{
     \item{nline: the number of lines in the data set.}
@@ -39,7 +39,7 @@ map.LR(ww)
     \item{length: vector of length \code{ngon}. The number of lines that every polygon conists of.}
     \item{data: all the lines that constitute the polygons. Negative values mean the line is followed in reverse direction. There is no NA separating the different polygons, so you need exact begin and end points.}
     \item{begin, end: vectors of length \code{ngon}: the begin and end point in the data vector.}}}
-}
+}}
 \details{This set of functions performs the various steps necessary to transform a set of polygons into a data set of polylines that may be used as input for \code{maps}. A necessary condition is that the polygons need to have exactly matching borders. If this is not the case, the result may be completely random.
 
 See 'examples' for quick discussion of th evarious functions.
