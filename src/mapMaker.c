@@ -119,7 +119,7 @@ void mapmerge_seg(double*x, double*y, int *xlen, int*valence, int* linebuf,
             (*xlen_out)++;
           }
         }
-        linebuf[segnum] = lline;
+        linebuf[segnum-1] = lline;
         *(x_out++) = *(x + 3*(segnum-1));
         *(y_out++) = *(y + 3*(segnum-1));
         llen++;
@@ -136,8 +136,8 @@ void mapmerge_seg(double*x, double*y, int *xlen, int*valence, int* linebuf,
 // the segment is already known
 // now see if it is in the 'current' line
 // If it's a new one, do some work, otherwise: just move on...
-        if (linebuf[-segnum] != -lline) {
-          lline = -linebuf[-segnum];
+        if (linebuf[-segnum-1] != -lline) {
+          lline = -linebuf[-segnum-1];
           *(gon_out++) = lline;
           glen++;
         }
