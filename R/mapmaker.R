@@ -10,13 +10,13 @@
 #          but precision 9 may give numbers > maxint=2^31
 #          SO: use doubles, but fill them with (large) integers
 # BUT: when writing to binary map format, they are reduced to 32 bit float!
-map.make <- function(ww,scale=8){
-  nline <- sum(is.na(ww$x)) + 1
+map.make <- function(map,scale=8){
+  nline <- sum(is.na(map$x)) + 1
   ngon <- nline
 # make sure there is no trailing NA
-  if (is.na(ww$x[length(ww$x)])) {
-    ww$x <- ww$x[-length(ww$x)]
-    ww$y <- ww$y[-length(ww$x)]
+  if (is.na(map$x[length(map$x)])) {
+    map$x <- map$x[-length(map$x)]
+    map$y <- map$y[-length(map$x)]
   }
   gondata <- rep(NA,2*ngon)
   gondata[seq(1,2*ngon,by=2)] <- 1:ngon
@@ -31,9 +31,9 @@ map.make <- function(ww,scale=8){
 # because they mess up the segment-splitting
 ### BUG: THIS IS NOT ENOUGH
 ### the rounding to integer may introduce self-crossings 
-  NX=length(ww$x)
-  x.scaled <- round(ww$x * pi/180 * 10^scale )
-  y.scaled <- round(ww$y * pi/180 * 10^scale )
+  NX=length(map$x)
+  x.scaled <- round(map$x * pi/180 * 10^scale )
+  y.scaled <- round(map$y * pi/180 * 10^scale )
   cleanup <- .C("mapclean",x=x.scaled,y=y.scaled,
                            len=as.integer(NX),
                 x_out=numeric(NX),y_out=numeric(NX),len_out=integer(1),
@@ -54,7 +54,7 @@ map.make <- function(ww,scale=8){
                nline = nline,
                scale = scale)
 
-  list(gon=gon, line=line, names=ww$names)
+  list(gon=gon, line=line, names=map$names)
 }
 
 
@@ -177,7 +177,7 @@ map.shift.gon <- function(ww,valence=NULL){
 }
 
 # step 4c : merge segments to lines
-map.merge.seg <- function(ww,valence=NULL) {
+map.merge.segments <- function(ww,valence=NULL) {
 # valence 1 is impossible when all lines are still single segments
 # when valence=2 you could merge, except if it's a closed loop
   if (is.null(valence)) valence <- map.valence(ww)
@@ -231,7 +231,7 @@ which.gon <- function(ll,ww){
          FUN.VALUE=1)
 }
 
-make.LR <- function(ww) {
+map.LR <- function(ww) {
   ww$line$left  <- vapply(1:ww$line$nline, function(ll) which.gon(-ll,ww)[1],FUN.VALUE=1)
   ww$line$right <- vapply(1:ww$line$nline, function(ll) which.gon( ll,ww)[1],FUN.VALUE=1)
   ww

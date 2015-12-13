@@ -31,6 +31,5 @@ This package provides:
 
 ## TO DO
 - export directly to binary format (in progress)
-- explain how to make the exported maps accessible via environment variables
 - use the data sets provide by rnaturalearth, rather than downloading yourself
 - ...
