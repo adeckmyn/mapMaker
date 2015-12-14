@@ -45,8 +45,7 @@ map.make <- function(map,scale=8){
   linoffset <- c(1,which(is.na(x))+1)
   linlen <- c(linoffset[2:nline]-linoffset[1:(nline-1)] - 1,
               length(x)- linoffset[ngon] + 1)
-  line <- list(x = x, y = y,
-               begin = linoffset,
+  line <- list(begin = linoffset,
                end   = linoffset + linlen - 1,
                length = linlen,
                left = rep(0,nline),
@@ -54,7 +53,7 @@ map.make <- function(map,scale=8){
                nline = nline,
                scale = scale)
 
-  list(gon=gon, line=line, names=map$names)
+  list(x=x, y=y, gon=gon, line=line, names=map$names)
 }
 
 
@@ -78,22 +77,22 @@ map.split <- function(ww) {
 # a b c -> a b NA b c
 # internal points b -> b NA b ==> 
  
-  line2$x <- rep(NA,3*nline2 -1)
-  line2$y <- rep(NA,3*nline2 -1)
-  t1 <- c(1,which(is.na(ww$line$x)) + 1)
-  t2 <- c(which(is.na(ww$line$x)) -1,length(ww$line$x))
-  c1 <- setdiff(which(!is.na(ww$line$x)),t2)
-  c2 <- setdiff(which(!is.na(ww$line$x)),t1)
+  x2 <- rep(NA,3*nline2 -1)
+  y2 <- rep(NA,3*nline2 -1)
+  t1 <- c(1,which(is.na(ww$x)) + 1)
+  t2 <- c(which(is.na(ww$x)) -1,length(ww$x))
+  c1 <- setdiff(which(!is.na(ww$x)),t2)
+  c2 <- setdiff(which(!is.na(ww$x)),t1)
 
-  line2$x[seq(1,3*nline2,by=3)] <- ww$line$x[c1]
-  line2$x[seq(2,3*nline2,by=3)] <- ww$line$x[c2]
-  line2$y[seq(1,3*nline2,by=3)] <- ww$line$y[c1]
-  line2$y[seq(2,3*nline2,by=3)] <- ww$line$y[c2]
+  x2[seq(1,3*nline2,by=3)] <- ww$x[c1]
+  x2[seq(2,3*nline2,by=3)] <- ww$x[c2]
+  y2[seq(1,3*nline2,by=3)] <- ww$y[c1]
+  y2[seq(2,3*nline2,by=3)] <- ww$y[c2]
   line2$begin <- seq(1,3*nline2,by=3)
   line2$end <- seq(2,3*nline2,by=3)
   line2$scale <- ww$line$scale
 
-  list(gon=gon2, line=line2, names=ww$names)
+  list(x=x2, y=y2, gon=gon2, line=line2, names=ww$names)
 }
 
 # step 3 : remove duplicate segments
@@ -103,8 +102,8 @@ map.split <- function(ww) {
 # i : identical to segment i (should never happen!)
 #-i : reverse of segment i
 map.dups <- function(ww){
-  ttt <- .C("mapdups",x=as.numeric(ww$line$x),
-                      y=as.numeric(ww$line$y),
+  ttt <- .C("mapdups",x=as.numeric(ww$x),
+                      y=as.numeric(ww$y),
                       nx=as.integer(ww$line$nline),
                       result=integer(ww$line$nline),NAOK=TRUE)
   if (any(ttt$result>0)) warning("Some polygons have different winding!")
@@ -114,22 +113,22 @@ map.dups <- function(ww){
   renumber[ttt$result > 0] <- renumber[ttt$result[ttt$result>0]]
   renumber[ttt$result < 0] <- -renumber[abs(ttt$result[ttt$result<0])]
   line2 <- list(nline=nline2,
-                x=rep(NA,3*nline2-1),
-                y=rep(NA,3*nline2-1),
                 begin=seq(1,3*nline2,by=3),
                 end=seq(2,3*nline2,by=3),
                 length=rep(2,nline2),
                 right=ww$line$right[ttt$result==0],
                 scale=ww$line$scale)
   off1 <- ww$line$begin[ttt$result==0]
-  line2$x[seq(1,3*nline2,by=3)] <- ww$line$x[off1]
-  line2$x[seq(2,3*nline2,by=3)] <- ww$line$x[(off1 + 1)]
-  line2$y[seq(1,3*nline2,by=3)] <- ww$line$y[off1]
-  line2$y[seq(2,3*nline2,by=3)] <- ww$line$y[(off1 + 1)]
+  x2 <- rep(NA,3*nline2-1),
+  y2 <- rep(NA,3*nline2-1),
+  x2[seq(1,3*nline2,by=3)] <- ww$x[off1]
+  x2[seq(2,3*nline2,by=3)] <- ww$x[(off1 + 1)]
+  y2[seq(1,3*nline2,by=3)] <- ww$y[off1]
+  y2[seq(2,3*nline2,by=3)] <- ww$y[(off1 + 1)]
 
   gon2 <- ww$gon
   gon2$data <- vapply(gon2$data,function(i) renumber[i],FUN.VALUE=1)
-  list(gon=gon2,line=line2,names=ww$names)
+  list(x=x2, y=y2, gon=gon2,line=line2,names=ww$names)
 }
 
 # step 4 : merge segments to polylines
@@ -143,10 +142,10 @@ map.dups <- function(ww){
 # step 4a: calculate valence : how many times does a point appear in the full data set
 # takes a while (for 'world' map a bit more than 1 minute)
 map.valence <- function(ww) {
-  .C("mapvalence", x=as.numeric(ww$line$x),
-                   y=as.numeric(ww$line$y),
-                   len=as.integer(length(ww$line$x)),
-                   val=integer(length(ww$line$x)),NAOK=TRUE)$val
+  .C("mapvalence", x=as.numeric(ww$x),
+                   y=as.numeric(ww$y),
+                   len=as.integer(length(ww$x)),
+                   val=integer(length(ww$x)),NAOK=TRUE)$val
 }
 
 # step 4b : make sure every polygon starts to draw from a vertex (except islands)
@@ -183,10 +182,10 @@ map.merge.segments <- function(ww,valence=NULL) {
   if (is.null(valence)) valence <- map.valence(ww)
   if (any(valence==1)) warning("There appear to be loose points?")
 
-  xlen <- length(ww$line$x)
+  xlen <- length(ww$x)
   merging <- .C("mapmerge_seg",
-                          x=as.numeric(ww$line$x),
-                          y=as.numeric(ww$line$y),
+                          x=as.numeric(ww$x),
+                          y=as.numeric(ww$y),
                           xlen=as.integer(xlen),
                           valence=as.integer(valence),
                           linebuf=integer(ww$line$nline),
@@ -199,14 +198,13 @@ map.merge.segments <- function(ww,valence=NULL) {
                           gon_out=integer(length(ww$gon$data)),
                           gonlen_out=integer(ww$gon$ngon),
                           NAOK=TRUE)
-
-  line2 <- list(x=merging$x_out[1:merging$xlen_out],
-                y=merging$y_out[1:merging$xlen_out],
-                scale=ww$line$scale)
-  line2$nline <- sum(is.na(line2$x)) + 1
-  line2$begin <- c(1,which(is.na(line2$x))+1)
-  line2$end <- c(which(is.na(line2$x))-1,length(line2$x))
-  line2$length <- line2$end - line2$begin + 1
+  x2 <- merging$x_out[1:merging$xlen_out]
+  y2 <- merging$y_out[1:merging$xlen_out]
+  line2 <- list(scale=ww$line$scale,
+                nline = sum(is.na(x2)) + 1,
+                begin = c(1,which(is.na(x2))+1),
+                end = c(which(is.na(x2))-1,length(x2)))
+  line2$length = line2$end - line2$begin + 1
   
   
   gon2 <- list(ngon=ww$gon$ngon,
@@ -214,7 +212,7 @@ map.merge.segments <- function(ww,valence=NULL) {
                begin=c(1,cumsum(merging$gonlen_out)[-ww$gon$ngon]+1),
                end=cumsum(merging$gonlen_out),
                data=merging$gon_out[1:sum(merging$gonlen_out)])
-  ww2 <- list(line=line2,gon=gon2,names=ww$names)
+  ww2 <- list(x=x2, y=y2, line=line2,gon=gon2,names=ww$names)
 
   map.LR(ww2)
 }
