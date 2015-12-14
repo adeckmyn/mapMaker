@@ -216,7 +216,7 @@ map.merge.segments <- function(ww,valence=NULL) {
                data=merging$gon_out[1:sum(merging$gonlen_out)])
   ww2 <- list(line=line2,gon=gon2,names=ww$names)
 
-  make.LR(ww2)
+  map.LR(ww2)
 }
 
 ###############################################################################
