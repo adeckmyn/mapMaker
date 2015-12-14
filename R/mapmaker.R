@@ -119,8 +119,8 @@ map.dups <- function(ww){
                 right=ww$line$right[ttt$result==0],
                 scale=ww$line$scale)
   off1 <- ww$line$begin[ttt$result==0]
-  x2 <- rep(NA,3*nline2-1),
-  y2 <- rep(NA,3*nline2-1),
+  x2 <- rep(NA,3*nline2-1)
+  y2 <- rep(NA,3*nline2-1)
   x2[seq(1,3*nline2,by=3)] <- ww$x[off1]
   x2[seq(2,3*nline2,by=3)] <- ww$x[(off1 + 1)]
   y2[seq(1,3*nline2,by=3)] <- ww$y[off1]
