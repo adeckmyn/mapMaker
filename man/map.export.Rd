@@ -6,13 +6,14 @@
 Write the internal representation of polylines and polygons to files. Either ascii (for portability, but needs to be 'compiled' for use by maps) or directly to binary.
 }
 \usage{
-map.export.ascii(ww,outfile,ndec=NULL)
-map.export.bin(ww,outfile)
+map.export.ascii(ww, outfile, scale=pi/180, ndec=10)
+map.export.bin(ww,outfile, scale=pi/180)
 }
 \arguments{
 \item{ww}{A list with components \code{gon}, \code{line} and \code{names}, the internal representation of mapMaker.}
 \item{outfile}{Name of file(s) to write to. The extensions are added (see details).}
-\item{ndec}{Number of decimals to write in the ascii file. If NULL, it is taken from the scale component in the line data.}
+\item{scale}{Rescaling of the data. Usually, data is writen in radians.}
+\item{ndec}{Number of decimals to write in the ascii file.}
 }
 \value{No return data. The data is written to files.}
 \details{\itemize{
