@@ -4,7 +4,7 @@ read.worldmap <- function(infile="data/ne_10m_admin_0_countries_lakes",
 }
 
 read.admin1 <- function(infile="data/ne_10m_admin_1_states_provinces",
-                        countries="BE",namefield="woe_name"){
+                        countries="BE",namefield="name"){
   read.regions(infile,countries,namefield)
 }
 
@@ -13,18 +13,17 @@ read.regions <- function(database, countries,namefield){
 # TODO : if two namefields are given: paste(..,sep=":")
 #  require(maptools)
   if (is.character(database)) database <- readShapePoly(database)
-  
-  PW <- database[which(database$iso_a2 %in% countries),]
+  if (!is.null(countries)) database <- database[which(database$iso_a2 %in% countries),]
 
-  region.names <- as.character(PW[[namefield]])
+  region.names <- as.character(database[[namefield]])
   nregions <- length(region.names)
 
-  ngon <- vapply(1:nregions,FUN=function(i) length(PW@polygons[[i]]@Polygons),FUN.VALUE=1)
+  ngon <- vapply(1:nregions,FUN=function(i) length(database@polygons[[i]]@Polygons),FUN.VALUE=1)
 
-  gon.names <- unlist(lapply(1:dim(PW)[1], function(i) {
+  gon.names <- unlist(lapply(1:dim(database)[1], function(i) {
              if(ngon[i]==1) region.names[i] else paste(region.names[i],1:ngon[i],sep=":")}))
 
-  allpoly <- lapply(PW@polygons, function(x) lapply(x@Polygons, function(y) y@coords))
+  allpoly <- lapply(database@polygons, function(x) lapply(x@Polygons, function(y) y@coords))
 ## allpoly is a list of lists of Nx2 matrices (not data frames)
 ## first flatten the list, then add NA to every row, then rbind and remove last NA
 #  p1 <- do.call(c, allpoly)

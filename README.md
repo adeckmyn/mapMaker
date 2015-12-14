@@ -44,9 +44,9 @@ map(be)
 `be1 <- map.make(be)`
 2. Split the polygons into line segments consisting of 2 points.  
 `be2 <- map.split(be1)`
-3. Remove all dupplicate segments.  
+3. Remove all dupplicate segments (For large data sets this may take some time! About half a minute for the 1:50 map. For the 1:10 world map: have a coffee brake).  
 `be3 <- map.dups(be2)`
-4. Calculate the 'valence' of every point (number of segments it belongs to). This may take some time (for the complete 1:50 world map from Natural Earth: a bit over 1 minute on my PC).  
+4. Calculate the 'valence' of every point (number of segments it belongs to). This may take some time (for the complete 1:50 world map from Natural Earth: a bit over 1 minute on my PC. For the 1:10 map it will be a long coffee break.).  
 `val <- map.valence(be3)`
 5. Shift the lines forming a polygon, until the polygon starts at a vertex (except islands, of course).  
 `be4 <- map.shift.gon(be3,val)`
@@ -65,5 +65,6 @@ map(be)
 - export directly to binary format (in progress)
 - use the data sets provide by rnaturalearth, rather than downloading yourself
 - Joining polygons (e.g. Russia) that have been split to opposite sides of the map
+- Fix Antarctica (in NE the polygon has a "cosmetic" extra line, which you don't want if you are going to use projections!
 - Further editing of maps...
 
