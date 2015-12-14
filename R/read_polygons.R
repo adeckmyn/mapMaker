@@ -8,12 +8,13 @@ read.admin1 <- function(infile="data/ne_10m_admin_1_states_provinces",
   read.regions(infile,countries,namefield)
 }
 
-read.regions <- function(infile, countries,namefield){
+read.regions <- function(database, countries,namefield){
 # for world map: admin_0 and namefield=NAME_LONG
 # TODO : if two namefields are given: paste(..,sep=":")
-  require(maptools)
-  PW <- readShapePoly(infile)
-  PW <- PW[which(PW$iso_a2 %in% countries),]
+#  require(maptools)
+  if (is.character(database)) database <- readShapePoly(database)
+  
+  PW <- database[which(database$iso_a2 %in% countries),]
 
   region.names <- as.character(PW[[namefield]])
   nregions <- length(region.names)

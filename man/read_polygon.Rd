@@ -6,15 +6,15 @@
 }
 \description{Extract a set of polygons from a shape file and return as a simple list.}
 \usage{
-read.worldmap <- function(infile="data/ne_10m_admin_0_countries_lakes",
+read.worldmap <- function(database="data/ne_10m_admin_0_countries_lakes",
                           countries=NULL,namefield="NAME_LONG") 
-read.admin1 <- function(infile="data/ne_10m_admin_1_states_provinces",
+read.admin1 <- function(database="data/ne_10m_admin_1_states_provinces",
                         countries="BE",namefield="woe_name")
-read.regions <- function(infile, countries,namefield)
+read.regions <- function(database, countries,namefield)
 }
 \arguments{
-  \item{infile}{
-    character string naming a geographical database, typically a shapefile, but it could be any forma readable with \code{readShapePoly}.  }
+  \item{database}{
+    character string naming a geographical database, typically a shapefile, but it could be any format readable with \code{readShapePoly}. It may also be a \code{SpatialPolygonDataFrame}. }
   \item{countries}{
     character vector with 2-letter codes (ISO-3166) of countries to extract.
   }
