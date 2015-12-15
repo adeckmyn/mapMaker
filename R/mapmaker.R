@@ -10,7 +10,7 @@
 #          but precision 9 may give numbers > maxint=2^31
 #          SO: use doubles, but fill them with (large) integers
 # BUT: when writing to binary map format, they are reduced to 32 bit float!
-map.make <- function(map,scale=8){
+map.make <- function(map){
   nline <- sum(is.na(map$x)) + 1
   ngon <- nline
 # make sure there is no trailing NA
@@ -32,9 +32,9 @@ map.make <- function(map,scale=8){
 ### BUG: THIS IS NOT ENOUGH
 ### the rounding to integer may introduce self-crossings 
   NX=length(map$x)
-  x.scaled <- round(map$x * pi/180 * 10^scale )
-  y.scaled <- round(map$y * pi/180 * 10^scale )
-  cleanup <- .C("mapclean",x=x.scaled,y=y.scaled,
+#  x.scaled <- round(map$x * pi/180 * 10^scale )
+#  y.scaled <- round(map$y * pi/180 * 10^scale )
+  cleanup <- .C("mapclean",x=x,y=y,
                            len=as.integer(NX),
                 x_out=numeric(NX),y_out=numeric(NX),len_out=integer(1),
                 NAOK=TRUE)
@@ -50,8 +50,7 @@ map.make <- function(map,scale=8){
                length = linlen,
                left = rep(0,nline),
                right = 1:nline,
-               nline = nline,
-               scale = scale)
+               nline = nline)
 
   list(x=x, y=y, gon=gon, line=line, names=map$names)
 }
@@ -90,7 +89,6 @@ map.split <- function(ww) {
   y2[seq(2,3*nline2,by=3)] <- ww$y[c2]
   line2$begin <- seq(1,3*nline2,by=3)
   line2$end <- seq(2,3*nline2,by=3)
-  line2$scale <- ww$line$scale
 
   list(x=x2, y=y2, gon=gon2, line=line2, names=ww$names)
 }
@@ -116,8 +114,7 @@ map.dups <- function(ww){
                 begin=seq(1,3*nline2,by=3),
                 end=seq(2,3*nline2,by=3),
                 length=rep(2,nline2),
-                right=ww$line$right[ttt$result==0],
-                scale=ww$line$scale)
+                right=ww$line$right[ttt$result==0])
   off1 <- ww$line$begin[ttt$result==0]
   x2 <- rep(NA,3*nline2-1)
   y2 <- rep(NA,3*nline2-1)
@@ -200,8 +197,7 @@ map.merge.segments <- function(ww,valence=NULL) {
                           NAOK=TRUE)
   x2 <- merging$x_out[1:merging$xlen_out]
   y2 <- merging$y_out[1:merging$xlen_out]
-  line2 <- list(scale=ww$line$scale,
-                nline = sum(is.na(x2)) + 1,
+  line2 <- list(nline = sum(is.na(x2)) + 1,
                 begin = c(1,which(is.na(x2))+1),
                 end = c(which(is.na(x2))-1,length(x2)))
   line2$length = line2$end - line2$begin + 1
