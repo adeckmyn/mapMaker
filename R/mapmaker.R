@@ -10,7 +10,7 @@
 #          but precision 9 may give numbers > maxint=2^31
 #          SO: use doubles, but fill them with (large) integers
 # BUT: when writing to binary map format, they are reduced to 32 bit float!
-map.make <- function(map){
+map.make <- function(map, rounding=9){
   nline <- sum(is.na(map$x)) + 1
   ngon <- nline
 # make sure there is no trailing NA
@@ -31,11 +31,12 @@ map.make <- function(map){
 # because they mess up the segment-splitting
 ### BUG: THIS IS NOT ENOUGH
 ### the rounding to integer may introduce self-crossings 
-  NX=length(map$x)
-#  x.scaled <- round(map$x * pi/180 * 10^scale )
-#  y.scaled <- round(map$y * pi/180 * 10^scale )
-  cleanup <- .C("mapclean",x=map$x,y=map$y,
-                           len=as.integer(NX),
+## rounding turns out to be necessary: some points are not "identical" at full precision...
+  map$x <- round(map$x, rounding)
+  map$y <- round(map$y, rounding)
+`
+  NX <- length(map$x)
+  cleanup <- .C("mapclean",x=map$x,y=map$y, len=as.integer(NX),
                 x_out=numeric(NX),y_out=numeric(NX),len_out=integer(1),
                 NAOK=TRUE)
   if(cleanup$len_out < NX) cat("mapclean removed",NX-cleanup$len_out,"points.\n")
