@@ -60,9 +60,10 @@ map(be)
 9. Finished!  
 `map(database="belgium")`
 
+##CAVEAT
+Turning the polygons into lines requires that the borders of polygons match *exactly*. That is often not the case. So the default is to round all co-ordinates to 9 decimals. The alternative would be to set some interval for /identical/ points, but that would be much slower! Anyway, /the binary format of `maps` uses 32 bit floats, not double!/
 
 ## TO DO
-- export directly to binary format (in progress)
 - use the data sets provide by rnaturalearth, rather than downloading yourself
 - Joining polygons (e.g. Russia) that have been split to opposite sides of the map
 - Fix Antarctica (in NE the polygon has a "cosmetic" extra line, which you don't want if you are going to use projections!
