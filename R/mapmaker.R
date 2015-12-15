@@ -25,16 +25,13 @@ map.make <- function(map, rounding=9){
               end   = seq(1,2*ngon-1,by=2),
               data   = gondata,
               ngon = ngon)
-
+# You need to do some rounding later on!
+# NE has a precision of 9 decimals
+  map$x <- round(map$x, rounding)
+  map$y <- round(map$y, rounding)
 # remove duplicate points
 # from a polygon dataset
 # because they mess up the segment-splitting
-### BUG: THIS IS NOT ENOUGH
-### the rounding to integer may introduce self-crossings 
-## rounding turns out to be necessary: some points are not "identical" at full precision...
-  map$x <- round(map$x, rounding)
-  map$y <- round(map$y, rounding)
-`
   NX <- length(map$x)
   cleanup <- .C("mapclean",x=map$x,y=map$y, len=as.integer(NX),
                 x_out=numeric(NX),y_out=numeric(NX),len_out=integer(1),
