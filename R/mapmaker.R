@@ -34,7 +34,7 @@ map.make <- function(map){
   NX=length(map$x)
 #  x.scaled <- round(map$x * pi/180 * 10^scale )
 #  y.scaled <- round(map$y * pi/180 * 10^scale )
-  cleanup <- .C("mapclean",x=x,y=y,
+  cleanup <- .C("mapclean",x=map$x,y=map$y,
                            len=as.integer(NX),
                 x_out=numeric(NX),y_out=numeric(NX),len_out=integer(1),
                 NAOK=TRUE)
