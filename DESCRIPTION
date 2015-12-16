@@ -1,6 +1,6 @@
 Package: mapMaker
 Title: Create map databases from Natural Earth data
-Version: 0.0-10
+Version: 0.0-11
 Date: 2015-12-16
 Author: Alex Deckmyn
 Description: A set of routines to extract map data from Natural Earth

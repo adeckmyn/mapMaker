@@ -19,12 +19,14 @@ This package provides:
 The data sets in 'maps' and 'mapdata' are distributed as ascii files, but installed in a particular binary format that allows for efficient reading of polygons and polylines.
 
 However, the 'map()' function can also use a simpler map format which is not necessarily file based. A map database may also be a simple R list with three components:
-- x,y: 2 vectors containing longitude and lattitude of a set of polygons (with NA separating the polygons)
+- x, y: two vectors containing longitude and lattitude of a set of polygons (with NA separating the polygons)
 - names: the names of the polygons
 
 The output of map(...,fill=TRUE) is in fact such a list and can be used again:
-> myworld <- map('world',fill=TRUE)
-> map(myworld)
+```R
+myworld <- map('world',fill=TRUE)
+map(myworld)
+```
 
 So the simplest way to use new data sets in 'maps' is as such a simple list of polygons. This is fine for many applications, but some of the possibilities of the 'maps' package are only available for the file based maps.
 
@@ -57,20 +59,25 @@ Or step by step:
 `be4 <- map.shift.gon(be3,val)`
 6. Merge all segments to polylines that begin and end at a vertex.  
 `be5 <- map.merge.segments(be4,val)`
-7. Export as a binary file (not yet completely implemented...).  
+7. Fix which polygons are at the left and right of every polyline.  
+`be6 <- map.LR(be5)`
+
+To use this data set, we must export it to a file(s) and make it available to 'map()'. This involves a special combination of an R variable giving the name of the environment variable that holds the path to the map data.
+
+1. Export as a binary file.  
 `map.export.bin(be5,file=paste(MY_MAP_PATH,"belgium",sep="/"))`
-8. Make the map available to `maps`. This requires setting an environment variable and a local variable.  
+2. Make the map available to `maps`. This requires setting an environment variable and a local variable.  
 `Sys.setenv("R_MY_MAP_PATH"=MY_MAP_PATH)`  
 `belgiumMapEnv <- "R_MY_MAP_PATH"`
-9. Finished!  
+3. Finished!  
 `map(database="belgium")`
 
 ##CAVEAT
-Turning the polygons into lines requires that the borders of polygons match *exactly*. That is often not the case. So the default is to first set all co-ordinates that are equal up to 8 decimals to be numerically equal. We do this as a first step, so in later steps we can assume common borders of polygons to be numerically identical. The binary format of `maps` uses 32 bit floats, not double, so the default of 8 decimals seems reasonable.
+Turning the polygons into lines requires that the borders of polygons match *exactly*. That is often not the case. So the default is to first set all co-ordinates that are equal up to 8 decimals to be numerically equal. We do this as a first step, so in later steps we can assume common borders of polygons to be numerically identical. The binary format of 'maps' uses 32 bit floats, not double, so the default of 8 decimals seems reasonable.
 
 ## TO DO
 - use the data sets provide by rnaturalearth, rather than downloading yourself
-- Joining polygons (e.g. Russia) that have been split to opposite sides of the map
+- Joining polygons that have been split to opposite sides of the map (e.g. Russia). 
 - Fix Antarctica (in NE the polygon has a "cosmetic" extra line, which you don't want if you are going to use projections!
 - Further editing of maps...
 

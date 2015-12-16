@@ -1,15 +1,12 @@
 #include "R.h"
-// several routines expect integer values for x/y!
-// but we use "double" because we need higher than 2^31 for high precision maps
-void mapdups(double*x,double*y,int*len,int*result);
+void mapsizes(int* result);
 void mapclean(double*x,double*y,int*len,double*nx,double*ny,int*nlen, double* precision);
-void mapclean0(double*x,double*y,int*len,double*nx,double*ny,int*nlen);
-void mapvalence_seg(double*x,double*y,int*len,int*valence);
+void mapvalence(double*x,double*y,int*len,int*valence);
+void mapdups(double*x,double*y,int*len,int*result);
 void mapmerge_seg(double*x, double*y, int *xlen, int*valence, int* linebuf,
               int*gon, int*gonlen, int*ngon,
               double *x_out, double *y_out, int *xlen_out,
               int* gon_out, int* gonlen_out);
-void mapsizes(int* result);
 
 // for writing maps in binary format, we have to be sure of types used by the C compiler
 void mapsizes(int* result){
@@ -18,33 +15,6 @@ void mapsizes(int* result){
   result[2] = sizeof(int);
   result[3] = sizeof(float);
 }
-
-
-// find duplicate segments (=lines of length 2)
-void mapdups(double*x,double*y,int*len,int*result){
-  int i,j;
-  double x1,x2,y1,y2;
-  double xp1,xp2,yp1,yp2;
-
-  for(i=0;i< *len;i++) result[i]=0;
-  for(i=0;i< *len; i++) {
-    if (result[i]) continue;
-    x1=x[3*i];
-    y1=y[3*i];
-    x2=x[3*i+1];
-    y2=y[3*i+1];
-    for(j=i+1;j< *len; j++) {
-      if (result[j]) continue;
-      xp1=x[3*j];
-      xp2=x[3*j+1];
-      yp1=y[3*j];
-      yp2=y[3*j+1];
-      if (x1==xp1 && x2==xp2 && y1==yp1 && y2==yp2) result[j] = i+1; // R is 1-based, C 0-based
-      else if (x1==xp2 && x2==xp1 && y1==yp2 && y2==yp1) result[j] = -i-1;
-    }
-  }
-}
-
 
 void mapclean(double*x,double*y,int*len,double*x_out,double*y_out,int*len_out, double *precision){
   int i,j,k;
@@ -73,26 +43,7 @@ void mapclean(double*x,double*y,int*len,double*x_out,double*y_out,int*len_out, d
   *len_out=j;
 }
 
-void mapclean0(double*x,double*y,int*len,double*x_out,double*y_out,int*len_out){
-  int i,j;
-// Remove duplicate points (unless it is an island of one point: that should be repeated.
-
-  x_out[0]=x[0];
-  y_out[0]=y[0];
-  j=1;
-  for (i=1 ; i<*len ; i++){
-    if( ISNA(x[i]) || ISNA(x_out[j-1]) ||
-        (j>1 && i< *len-1 && ISNA(x_out[j-2]) && ISNA(x[i+1])) ||
-        x[i]!=x_out[j-1] || y[i]!=y_out[j-1]){
-       x_out[j]=x[i];
-       y_out[j]=y[i];
-       j++;
-    }
-  }
-  *len_out=j;
-}
-
-
+// how often does every point appear in the data set?
 void mapvalence(double*x,double*y,int*len,int*valence){
   int i,j,val;
 
@@ -114,12 +65,35 @@ void mapvalence(double*x,double*y,int*len,int*valence){
   }
 }
 
+// find duplicate segments (=lines of length 2)
+void mapdups(double*x,double*y,int*len,int*result){
+  int i,j;
+  double x1,x2,y1,y2;
+  double xp1,xp2,yp1,yp2;
+
+  for(i=0;i< *len;i++) result[i]=0;
+  for(i=0;i< *len; i++) {
+    if (result[i]) continue;
+    x1=x[3*i];
+    y1=y[3*i];
+    x2=x[3*i+1];
+    y2=y[3*i+1];
+    for(j=i+1;j< *len; j++) {
+      if (result[j]) continue;
+      xp1=x[3*j];
+      xp2=x[3*j+1];
+      yp1=y[3*j];
+      yp2=y[3*j+1];
+      if (x1==xp1 && x2==xp2 && y1==yp1 && y2==yp2) result[j] = i+1; // R is 1-based, C 0-based
+      else if (x1==xp2 && x2==xp1 && y1==yp2 && y2==yp1) result[j] = -i-1;
+    }
+  }
+}
+
 // only 'positive' line numbers may be merged: the negative ones have already been done
 // except if there are polygons with different winding (lakes? City states? -> NO ,that should still be consistent)
-// output is a list of length nline, giving for every segment the line number
+// linebuf is a list of length nline, giving for every segment the line number
 // it should belong to.
-// BUG: there is no guarantee that the first gon starts with segment 1 (after rotation)
-// so don't copy x,y in-place
 void mapmerge_seg(double*x, double*y, int *xlen, int*valence, int* linebuf,
               int*gon, int*gonlen, int*ngon,
               double *x_out, double *y_out, int *xlen_out,
