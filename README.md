@@ -38,6 +38,12 @@ be <- read.admin1(database="ne_10m_admin_1_states_provinces", countries="BE")
 map(be) 
 ```
 ####To create a polyline-based set of files:
+Either in a 1 line call:
+```R
+be <- map.gon2line(be)
+```
+
+Or step by step:
 
 1. Turn into an internal format, but still just polygons. This also does some /cleaning/ of the data: points that are equal up to the precision (default 1.E-8) are made numerically identical. Also, duplicate points that may arise are removed. On a large data set (e.g. 1:10 world database) this can take some time.  
 `be1 <- map.make(be)`
