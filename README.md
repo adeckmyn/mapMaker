@@ -36,12 +36,10 @@ a typical mapMaker session may look like this:
 be <- read.admin1(database="ne_10m_admin_1_states_provinces", countries="BE")
 # you can use map() to see the result
 map(be) 
-
 ```
 ####To create a polyline-based set of files:
 
-1. Turn into an internal format, but still just polygons. This also does some /cleaning/ of the data: points that are equal up to the precision (default 1.E-8) are made numerically identical. Also, duplicate points that may arise are removed. On a large data set (e.g. 1:10 world database) this can take some time.
- 
+1. Turn into an internal format, but still just polygons. This also does some /cleaning/ of the data: points that are equal up to the precision (default 1.E-8) are made numerically identical. Also, duplicate points that may arise are removed. On a large data set (e.g. 1:10 world database) this can take some time.  
 `be1 <- map.make(be)`
 2. Split the polygons into line segments consisting of 2 points.  
 `be2 <- map.split(be1)`
