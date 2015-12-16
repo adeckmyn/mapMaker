@@ -31,7 +31,7 @@ change.gon <- function(ww, i, data){
   if (len0==len1) {
     ww$gon$data[ww$gon$begin[i]:ww$gon$end[i]] <- data
   } else {
-    ww$gon$data <- ww$gon$data[ww$gon$begin[i]:ww$gon$end[i])]
+    ww$gon$data <- ww$gon$data[ww$gon$begin[i]:ww$gon$end[i]]
     if (i==1) drop.index <- 2:ww$gon$ngon
     else if (i==ww$gon$ngon) drop.index <- 1:(ww$gon$ngon-1)
     else  drop.index <- c(1:(i-1),(i+1):ww$gon$ngon)

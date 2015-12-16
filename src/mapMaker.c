@@ -2,7 +2,8 @@
 // several routines expect integer values for x/y!
 // but we use "double" because we need higher than 2^31 for high precision maps
 void mapdups(double*x,double*y,int*len,int*result);
-void mapclean(double*x,double*y,int*len,double*nx,double*ny,int*nlen);
+void mapclean(double*x,double*y,int*len,double*nx,double*ny,int*nlen, double* precision);
+void mapclean0(double*x,double*y,int*len,double*nx,double*ny,int*nlen);
 void mapvalence_seg(double*x,double*y,int*len,int*valence);
 void mapmerge_seg(double*x, double*y, int *xlen, int*valence, int* linebuf,
               int*gon, int*gonlen, int*ngon,
@@ -45,10 +46,37 @@ void mapdups(double*x,double*y,int*len,int*result){
 }
 
 
-void mapclean(double*x,double*y,int*len,double*x_out,double*y_out,int*len_out){
+void mapclean(double*x,double*y,int*len,double*x_out,double*y_out,int*len_out, double *precision){
+  int i,j,k;
+// set all points that are equal up to the desired precision, to be exactly equal.
+// That simplifies & speeds up later code.
+// Remove duplicate points, while you're at it (unless it is an island of one point: that should be repeated).
+
+  x_out[0]=x[0];
+  y_out[0]=y[0];
+  j=1;
+  for (i=1 ; i<*len ; i++){
+    if( ISNA(x[i]) || ISNA(x_out[j-1]) ||
+        (j>1 && i< *len-1 && ISNA(x_out[j-2]) && ISNA(x[i+1])) ||
+        x[i]!=x_out[j-1] || y[i]!=y_out[j-1]){
+      x_out[j]=x[i];
+      y_out[j]=y[i];
+      j++;
+      if (!ISNA(x[i])) for (k=i+1 ; k< *len; k++) {
+        if( !ISNA(x[k]) && (fabs(x[k]-x[i]) < *precision) && (fabs(y[k]-y[i]) < *precision) ) {
+          x[k] = x[i];
+          y[k] = y[i];
+        }
+      }
+    }
+  }
+  *len_out=j;
+}
+
+void mapclean0(double*x,double*y,int*len,double*x_out,double*y_out,int*len_out){
   int i,j;
-/* BUGfix: mini-islands that are 1 point repeated twice become corrupted! */ 
-/* if there is only one point in the polygon, you want it repeated! */
+// Remove duplicate points (unless it is an island of one point: that should be repeated.
+
   x_out[0]=x[0];
   y_out[0]=y[0];
   j=1;
@@ -63,6 +91,7 @@ void mapclean(double*x,double*y,int*len,double*x_out,double*y_out,int*len_out){
   }
   *len_out=j;
 }
+
 
 void mapvalence(double*x,double*y,int*len,int*valence){
   int i,j,val;

@@ -10,7 +10,7 @@
   Turn a set of polygons (as returned by \code{map(...,fill=TRUE)} or \code{read.regions()}) into a polyline-based data set.
 }
 \usage{
-map.make(map, rounding=8)
+map.make(map, precision=1.E-8)
 map.split(ww)
 map.dups(ww)
 map.shift.gon(ww,valence=NULL)
@@ -21,7 +21,7 @@ map.LR(ww)
 \item{map}{A list with components \code{x,y,names}, as output from \code{map(fill=TRUE)} or \code{read.region()}.}
 \item{ww}{A list with components \code{gon}, \code{line} and \code{names}, which is also the format of the output. See 'value' for details.}
 \item{valence}{A numeric vector (output from \code{map.valence}). If NULL, it is computed inside the function. As this may take some time (e.g. about 1 minute for a world database) but is needed in two functions, it is convenient to calculate it separately.}
-\item{rounding}{Data from Natural Earth seems to be at 9 decimals. Beyond that, identical points may differ because of numerical jitter. Rounding is especially important once we want to extract lines by finding identical points.}
+\item{precision}{Data from Natural Earth may have some numerical 'jitter': identical points on two polygons may differ by some numerically insignificant amount. But since the identification of polylines depends on identifying common points, we must first 'clean' the data by setting all pionts that differ by less than the given precision, to be exactly equal. Given that the final result is written as 32bit floats, 8 decimals seems appropriate.}
 }
 \value{ All these functions, except \code{map.valence}, return an indexed data set of a map. After every step, the details may be different but the format is the same:
 \itemize{

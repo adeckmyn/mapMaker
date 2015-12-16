@@ -10,7 +10,7 @@
 #          but precision 9 may give numbers > maxint=2^31
 #          SO: use doubles, but fill them with (large) integers
 # BUT: when writing to binary map format, they are reduced to 32 bit float!
-map.make <- function(map, rounding=9){
+map.make <- function(map, precision=1.E-8){
   nline <- sum(is.na(map$x)) + 1
   ngon <- nline
 # make sure there is no trailing NA
@@ -26,15 +26,15 @@ map.make <- function(map, rounding=9){
               data   = gondata,
               ngon = ngon)
 # You need to do some rounding later on!
-# NE has a precision of 9 decimals
-  map$x <- round(map$x, rounding)
-  map$y <- round(map$y, rounding)
+# some parts of NE 1:10 have a precision of 9 decimals
+#  map$x <- round(map$x, rounding)
+#  map$y <- round(map$y, rounding)
 # remove duplicate points
 # from a polygon dataset
 # because they mess up the segment-splitting
   NX <- length(map$x)
   cleanup <- .C("mapclean",x=map$x,y=map$y, len=as.integer(NX),
-                x_out=numeric(NX),y_out=numeric(NX),len_out=integer(1),
+                x_out=numeric(NX),y_out=numeric(NX),len_out=integer(1),precision=as.numeric(precision),
                 NAOK=TRUE)
   if(cleanup$len_out < NX) cat("mapclean removed",NX-cleanup$len_out,"points.\n")
 #  data.frame(x=result$nx[1:result$nlen],y=result$ny[1:result$nlen])

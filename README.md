@@ -40,11 +40,12 @@ map(be)
 ```
 ####To create a polyline-based set of files:
 
-1. Turn into an internal format, but still just polygons.  
+1. Turn into an internal format, but still just polygons. This also does some /cleaning/ of the data: points that are equal up to the precision (default 1.E-8) are made numerically identical. Also, duplicate points that may arise are removed. On a large data set (e.g. 1:10 world database) this can take some time.
+ 
 `be1 <- map.make(be)`
 2. Split the polygons into line segments consisting of 2 points.  
 `be2 <- map.split(be1)`
-3. Remove all dupplicate segments (For large data sets this may take some time! About half a minute for the 1:50 map. For the 1:10 world map: have a coffee break).  
+3. Remove all duplicate segments (For large data sets this may take some time! About half a minute for the 1:50 map. For the 1:10 world map: have a coffee break).  
 `be3 <- map.dups(be2)`
 4. Calculate the 'valence' of every point (number of segments it belongs to). This may take some time (for the complete 1:50 world map from Natural Earth: a bit over 1 minute on my PC. For the 1:10 map it will be about 1 lunch break.).  
 `val <- map.valence(be3)`
@@ -61,7 +62,7 @@ map(be)
 `map(database="belgium")`
 
 ##CAVEAT
-Turning the polygons into lines requires that the borders of polygons match *exactly*. That is often not the case. So the default is to round all co-ordinates to 9 decimals. The alternative would be to set some interval for /identical/ points, but that would be much slower! Anyway, /the binary format of `maps` uses 32 bit floats, not double!/
+Turning the polygons into lines requires that the borders of polygons match *exactly*. That is often not the case. So the default is to first set all co-ordinates that are equal up to 8 decimals to be numerically equal. We do this as a first step, so in later steps we can assume common borders of polygons to be numerically identical. The binary format of `maps` uses 32 bit floats, not double, so the default of 8 decimals seems reasonable.
 
 ## TO DO
 - use the data sets provide by rnaturalearth, rather than downloading yourself
