@@ -66,7 +66,7 @@ To use this data set, we must export it to file(s) and make it available to 'map
 
 1. Export as a binary file.  
 `map.export.bin(be5,file="/tmp/belgium")`
-2. Make the map available to `maps`. This requires setting an environment variable and a local variable. Notice the trailing '//'.  
+2. Make the map available to `maps`. This requires setting an environment variable and a local variable. Don't forget the trailing '/'.  
 `Sys.setenv("R_MY_MAP_PATH"="/tmp/")`  
 `belgiumMapEnv <- "R_MY_MAP_PATH"`
 3. Finished!  
