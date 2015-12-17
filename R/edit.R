@@ -31,13 +31,18 @@ change.gon <- function(ww, i, data){
   if (len0==len1) {
     ww$gon$data[ww$gon$begin[i]:ww$gon$end[i]] <- data
   } else {
-    ww$gon$data <- ww$gon$data[ww$gon$begin[i]:ww$gon$end[i])]
-    if (i==1) drop.index <- 2:ww$gon$ngon
-    else if (i==ww$gon$ngon) drop.index <- 1:(ww$gon$ngon-1)
-    else  drop.index <- c(1:(i-1),(i+1):ww$gon$ngon)
-    ww$gon$begin  <- ww$gon$begin[drop.index]
-    ww$gon$end    <- ww$gon$end[drop.index]
-    ww$gon$length <- ww$gon$lenght[drop.index]
+    ww$gon$data <- c(head(ww$gon$data,ww$gon$begin[i]-1),data,tail(ww$gon$data,-ww$gon$end[i]))
+    if (i < ww$gon$ngon) ww$gon$begin[(i+1):ww$gon$ngon] <-  ww$gon$begin[(i+1):ww$gon$ngon] + (len1-len0)
+    ww$gon$end[i:ww$gon$ngon] <- ww$gon$end[i:ww$gon$ngon] + (len1-len0)
+    ww$gon$length[i] <- len1
   }
   ww
+}
+
+#############################
+
+find.antarctica <- function(ww){
+  zz <- which(ww$y < -82)[1]
+  ll <- which(ww$line$begin <= i & ww$line$end >= i)
+  ll
 }

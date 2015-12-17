@@ -48,8 +48,8 @@ map.export.ascii <- function(ww, outfile, scale=pi/180, ndec=10) {
 # write directly to 'maps' binary format
 # the original C code is much more efficient, but this routine runs
 # without compilation and without first writing to ASCII
-map.export.bin <- function(ww,outfile, scale=pi/180){
-  type_settings <- .C(maptypes,result=integer(4))$result
+map.export.bin <- function(ww, outfile, scale=pi/180){
+  type_settings <- as.list(.C("mapsizes",result=integer(4))$result)
   names(type_settings)=c("char","short","int","float")
   cat("platform:",type_settings,"\n")
 
@@ -79,11 +79,17 @@ map.export.bin <- function(ww,outfile, scale=pi/180){
   writeBin(as.integer(ww$line$nline),ff,size=type_settings$int)
 # for every line: offset, npair, left & right polygon, SW & NE limits
   offset <- 2*type_settings$int + nline * (type_settings$int + 3*type_settings$short + 4*type_settings$float)
+### R can not write unsigned!
+### So we have to assume some limitations:
+### line length must be < 2^15 rather than < 2^16 
+###        (OK for 1:10 world map: just over 2^14 = 16384, worldHires has ~19000 )
+### file size can only be 2^31 (OK)
+  if (any(ww$line$length) >= 2^(type_settings$short - 1)) stop("Line length too long: R can not write unsigned short.")
   for(i in 1:nline){
-    writeBin(as.integer(offset),ff,size=type_settings$int,signed=FALSE)
-    writeBin(as.integer(ww$line$length[i]),ff,size=type_settings$short, signed=FALSE)
-    writeBin(as.integer(ww$line$left[i]),ff,size=type_settings$short, signed=FALSE)
-    writeBin(as.integer(ww$line$right[i]),ff,size=type_settings$short, signed=FALSE)
+    writeBin(as.integer(offset),ff,size=type_settings$int)
+    writeBin(as.integer(ww$line$length[i]),ff,size=type_settings$short)
+    writeBin(as.integer(ww$line$left[i]),ff,size=type_settings$short)
+    writeBin(as.integer(ww$line$right[i]),ff,size=type_settings$short)
     writeBin(line.limits[i,],ff,size=type_settings$float)
     offset <- offset + 2*ww$line$length[i]*type_settings$float
   }
