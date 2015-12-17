@@ -30,10 +30,6 @@ A list with three components:
   \item{names: a character vector with length equal to the number of polygons in \code{x,y}.} 
 }
 }
-# \examples{
-#be <- read.admin1(country="BE")
-#map(be)	# low resolution map of the world
-#}
 \seealso{
   \code{\link{maps:map}} }
 

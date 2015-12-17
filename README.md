@@ -19,12 +19,14 @@ This package provides:
 The data sets in 'maps' and 'mapdata' are distributed as ascii files, but installed in a particular binary format that allows for efficient reading of polygons and polylines.
 
 However, the 'map()' function can also use a simpler map format which is not necessarily file based. A map database may also be a simple R list with three components:
-- x,y: 2 vectors containing longitude and lattitude of a set of polygons (with NA separating the polygons)
+- x, y: two vectors containing longitude and lattitude of a set of polygons (with NA separating the polygons)
 - names: the names of the polygons
 
 The output of map(...,fill=TRUE) is in fact such a list and can be used again:
-> myworld <- map('world',fill=TRUE)
-> map(myworld)
+```R
+myworld <- map('world',fill=TRUE)
+map(myworld)
+```
 
 So the simplest way to use new data sets in 'maps' is as such a simple list of polygons. This is fine for many applications, but some of the possibilities of the 'maps' package are only available for the file based maps.
 
@@ -36,15 +38,20 @@ a typical mapMaker session may look like this:
 be <- read.admin1(database="ne_10m_admin_1_states_provinces", countries="BE")
 # you can use map() to see the result
 map(be) 
-
 ```
 ####To create a polyline-based set of files:
+Either in a 1 line call:
+```R
+be <- map.gon2line(be)
+```
 
-1. Turn into an internal format, but still just polygons.  
+Or step by step:
+
+1. Turn into an internal format, but still just polygons. This also does some /cleaning/ of the data: points that are equal up to the precision (default 1.E-8) are made numerically identical. Also, duplicate points that may arise are removed. On a large data set (e.g. 1:10 world database) this can take some time.  
 `be1 <- map.make(be)`
 2. Split the polygons into line segments consisting of 2 points.  
 `be2 <- map.split(be1)`
-3. Remove all dupplicate segments (For large data sets this may take some time! About half a minute for the 1:50 map. For the 1:10 world map: have a coffee break).  
+3. Remove all duplicate segments (For large data sets this may take some time! About half a minute for the 1:50 map. For the 1:10 world map: have a coffee break).  
 `be3 <- map.dups(be2)`
 4. Calculate the 'valence' of every point (number of segments it belongs to). This may take some time (for the complete 1:50 world map from Natural Earth: a bit over 1 minute on my PC. For the 1:10 map it will be about 1 lunch break.).  
 `val <- map.valence(be3)`
@@ -52,20 +59,25 @@ map(be)
 `be4 <- map.shift.gon(be3,val)`
 6. Merge all segments to polylines that begin and end at a vertex.  
 `be5 <- map.merge.segments(be4,val)`
-7. Export as a binary file (not yet completely implemented...).  
+7. Fix which polygons are at the left and right of every polyline.  
+`be6 <- map.LR(be5)`
+
+To use this data set, we must export it to a file(s) and make it available to 'map()'. This involves a special combination of an R variable giving the name of the environment variable that holds the path to the map data.
+
+1. Export as a binary file.  
 `map.export.bin(be5,file=paste(MY_MAP_PATH,"belgium",sep="/"))`
-8. Make the map available to `maps`. This requires setting an environment variable and a local variable.  
+2. Make the map available to `maps`. This requires setting an environment variable and a local variable.  
 `Sys.setenv("R_MY_MAP_PATH"=MY_MAP_PATH)`  
 `belgiumMapEnv <- "R_MY_MAP_PATH"`
-9. Finished!  
+3. Finished!  
 `map(database="belgium")`
 
 ##CAVEAT
-Turning the polygons into lines requires that the borders of polygons match *exactly*. That is often not the case. So the default is to round all co-ordinates to 9 decimals. The alternative would be to set some interval for /identical/ points, but that would be much slower! Anyway, /the binary format of `maps` uses 32 bit floats, not double!/
+Turning the polygons into lines requires that the borders of polygons match *exactly*. That is often not the case. So the default is to first set all co-ordinates that are equal up to 8 decimals to be numerically equal. We do this as a first step, so in later steps we can assume common borders of polygons to be numerically identical. The binary format of 'maps' uses 32 bit floats, not double, so the default of 8 decimals seems reasonable.
 
 ## TO DO
 - use the data sets provide by rnaturalearth, rather than downloading yourself
-- Joining polygons (e.g. Russia) that have been split to opposite sides of the map
+- Joining polygons that have been split to opposite sides of the map (e.g. Russia). 
 - Fix Antarctica (in NE the polygon has a "cosmetic" extra line, which you don't want if you are going to use projections!
 - Further editing of maps...
 

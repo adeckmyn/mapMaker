@@ -11,6 +11,18 @@ get.gon <- function(ww, i) {
 #             right=ifelse(linelist<0,ww$line$left[abs(linelist)],ww$line$right[linelist]))
 }
 
+########################
+
+# to which polygon does a given line belong?
+which.gon <- function(ll,ww){
+  pplist <- which(ww$gon$data == ll)
+  if (length(pplist)==0) return(0)
+# vapply wil give an error if there are two matching polygons
+# that should never happen, but if the orientation of some polygons is inconsistent?...
+  vapply(pplist, function(pp) which( ww$gon$begin <= pp & ww$gon$end >= pp),
+         FUN.VALUE=1)
+}
+
 #########################
 
 remove.gon <- function(ww, i){

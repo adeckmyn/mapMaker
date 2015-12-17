@@ -10,7 +10,7 @@
 #          but precision 9 may give numbers > maxint=2^31
 #          SO: use doubles, but fill them with (large) integers
 # BUT: when writing to binary map format, they are reduced to 32 bit float!
-map.make <- function(map, rounding=9){
+map.make <- function(map, precision=1.E-8){
   nline <- sum(is.na(map$x)) + 1
   ngon <- nline
 # make sure there is no trailing NA
@@ -26,15 +26,15 @@ map.make <- function(map, rounding=9){
               data   = gondata,
               ngon = ngon)
 # You need to do some rounding later on!
-# NE has a precision of 9 decimals
-  map$x <- round(map$x, rounding)
-  map$y <- round(map$y, rounding)
+# some parts of NE 1:10 have a precision of 9 decimals
+#  map$x <- round(map$x, rounding)
+#  map$y <- round(map$y, rounding)
 # remove duplicate points
 # from a polygon dataset
 # because they mess up the segment-splitting
   NX <- length(map$x)
   cleanup <- .C("mapclean",x=map$x,y=map$y, len=as.integer(NX),
-                x_out=numeric(NX),y_out=numeric(NX),len_out=integer(1),
+                x_out=numeric(NX),y_out=numeric(NX),len_out=integer(1),precision=as.numeric(precision),
                 NAOK=TRUE)
   if(cleanup$len_out < NX) cat("mapclean removed",NX-cleanup$len_out,"points.\n")
 #  data.frame(x=result$nx[1:result$nlen],y=result$ny[1:result$nlen])
@@ -208,19 +208,6 @@ map.merge.segments <- function(ww,valence=NULL) {
                data=merging$gon_out[1:sum(merging$gonlen_out)])
   ww2 <- list(x=x2, y=y2, line=line2,gon=gon2,names=ww$names)
 
-  map.LR(ww2)
-}
-
-###############################################################################
-
-# to which polygon does a given line belong?
-which.gon <- function(ll,ww){
-  pplist <- which(ww$gon$data == ll)
-  if (length(pplist)==0) return(0)
-# vapply wil give an error if there are two matching polygons
-# that should never happen, but if the orientation of some polygons is inconsistent?...
-  vapply(pplist, function(pp) which( ww$gon$begin <= pp & ww$gon$end >= pp),
-         FUN.VALUE=1)
 }
 
 map.LR <- function(ww) {
@@ -229,5 +216,23 @@ map.LR <- function(ww) {
   ww
 }
 
+###############################################################################
 
-
+map.gon2line <- function(map, precision=1.E-8, quiet=FALSE){
+  if (!quiet) cat("Cleaning map data to precision", precision, "\n")
+  ww <- map.make(map, precision)
+  if (!quiet) cat("Splitting all polygons into line segments.\n")
+  ww <- map.split(ww)
+  if (!quiet) cat("Removing duplicate segments.\n")
+  ww <- map.dups(ww)
+  if (!quiet) cat("Calculating point valence.\n")
+  val <- map.valence(ww)
+  if (!quiet) cat("Shifting polygons to start at vertex.\n")
+  ww <- map.shift.gon(ww, val)
+  if (!quiet) cat("Merging segments to polylines.\n")
+  ww <- map.merge.segments(ww, val)
+  if (!quiet) cat("Fixing left/right polygonfor lines.\n")
+  ww <- map.LR(ww)
+   
+  ww 
+}
