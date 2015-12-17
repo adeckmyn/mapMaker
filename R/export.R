@@ -129,7 +129,7 @@ map.export.bin <- function(ww, outfile, scale=pi/180){
 # header
   writeBin(as.integer(ww$gon$ngon),gf,size=type_settings$short)
   offset <- type_settings$short + ngon * (type_settings$int + 4*type_settings$char + 4*type_settings$float)
-  for (for i in 1:ngon) {
+  for (i in 1:ngon) {
     writeBin(as.integer(offset),gf,size=type_settings$int)
     writeBin(as.integer(ww$gon$length[i]),gf,size=type_settings$char)
     writeBin(integer(3),gf,size=type_settings$char) #padding
