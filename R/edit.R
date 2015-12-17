@@ -25,7 +25,7 @@ which.gon <- function(ll,ww){
 
 #########################
 
-remove.gon <- function(ww, i){
+gon.remove <- function(ww, i){
   ww$gon$data <- ww$gon$data[-(ww$gon$begin[i]:ww$gon$end[i])]
   if (i==1) drop.index <- 2:ww$gon$ngon
   else if (i==ww$gon$ngon) drop.index <- 1:(ww$gon$ngon-1)
@@ -37,24 +37,47 @@ remove.gon <- function(ww, i){
   ww
 }
 
-change.gon <- function(ww, i, data){
+gon.change <- function(ww, i, data){
   len0 <- ww$gon$length[i]
   len1 <- length(data)
+  ngon <- ww$gon$ngon
   if (len0==len1) {
     ww$gon$data[ww$gon$begin[i]:ww$gon$end[i]] <- data
   } else {
     ww$gon$data <- c(head(ww$gon$data,ww$gon$begin[i]-1),data,tail(ww$gon$data,-ww$gon$end[i]))
-    if (i < ww$gon$ngon) ww$gon$begin[(i+1):ww$gon$ngon] <-  ww$gon$begin[(i+1):ww$gon$ngon] + (len1-len0)
-    ww$gon$end[i:ww$gon$ngon] <- ww$gon$end[i:ww$gon$ngon] + (len1-len0)
+    if (i < ngon) ww$gon$begin[(i+1):ngon] <-  ww$gon$begin[(i+1):ngon] + (len1-len0)
+    ww$gon$end[i:ngon] <- ww$gon$end[i:ngon] + (len1-len0)
     ww$gon$length[i] <- len1
   }
   ww
 }
 
+line.change <- function(ww, i, data){
+  len0 <- ww$line$length[i]
+  len1 <- dim(data)[1]
+  nline <- ww$line$nline
+  if (len0==len1) {
+    ww$x[ww$line$begin[i]:ww$line$end[i]] <- data[,1]
+    ww$y[ww$line$begin[i]:ww$line$end[i]] <- data[,2]
+  } else {
+    ww$x <- c(head(ww$x, ww$line$begin[i]-1),data[,1],tail(ww$x,-ww$line$end[i]))
+    ww$y <- c(head(ww$y, ww$line$begin[i]-1),data[,2],tail(ww$y,-ww$line$end[i]))
+    if (i < nline) ww$line$begin[(i+1):nline] <-  ww$line$begin[(i+1):nline] + (len1-len0)
+    ww$line$end[i:nline] <- ww$line$end[i:nline] + (len1-len0)
+    ww$line$length[i] <- len1
+  }
+  ww
+}
+
+
+
+
 #############################
 
 find.antarctica <- function(ww){
-  zz <- which(ww$y < -82)[1]
-  ll <- which(ww$line$begin <= i & ww$line$end >= i)
-  ll
+  i <- which(ww$y < -85)[1]
+  which(ww$line$begin <= i & ww$line$end >= i)
 }
+
+###############################
+

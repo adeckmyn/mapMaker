@@ -219,19 +219,19 @@ map.LR <- function(ww) {
 ###############################################################################
 
 map.gon2line <- function(map, precision=1.E-8, quiet=FALSE){
-  if (!quiet) cat("Cleaning map data to precision", precision, "\n")
+  if (!quiet) cat("Cleaning map data to precision", precision, ".\n")
   ww <- map.make(map, precision)
   if (!quiet) cat("Splitting all polygons into line segments.\n")
   ww <- map.split(ww)
   if (!quiet) cat("Removing duplicate segments.\n")
   ww <- map.dups(ww)
-  if (!quiet) cat("Calculating point valence.\n")
+  if (!quiet) cat("Calculating point valences.\n")
   val <- map.valence(ww)
   if (!quiet) cat("Shifting polygons to start at vertex.\n")
   ww <- map.shift.gon(ww, val)
   if (!quiet) cat("Merging segments to polylines.\n")
   ww <- map.merge.segments(ww, val)
-  if (!quiet) cat("Fixing left/right polygonfor lines.\n")
+  if (!quiet) cat("Fixing left/right polygon for lines.\n")
   ww <- map.LR(ww)
    
   ww 

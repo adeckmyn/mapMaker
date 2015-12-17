@@ -1,11 +1,11 @@
-read.worldmap <- function(infile="data/ne_10m_admin_0_countries_lakes",
+read.worldmap <- function(database="ne_50m_admin_0_countries_lakes",
                           countries=NULL,namefield="name") {
-  read.regions(infile,countries,namefield)
+  read.regions(database,countries,namefield)
 }
 
-read.admin1 <- function(infile="data/ne_10m_admin_1_states_provinces",
+read.admin1 <- function(database="ne_10m_admin_1_states_provinces",
                         countries="BE",namefield="name"){
-  read.regions(infile,countries,namefield)
+  read.regions(database,countries,namefield)
 }
 
 read.regions <- function(database, countries,namefield){
