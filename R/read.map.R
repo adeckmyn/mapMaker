@@ -46,7 +46,7 @@ map.read.bin <- function(infile, scale=180/pi) {
   seek(lf,0)
   maptype <- readBin(lf,"int",size=type_settings$int,n=1) # ==2 for sphere
   nline   <- readBin(lf,"int",size=type_settings$int,n=1)
-  cat("type=",maptype, "nline=",nline,"\n")
+#  cat("type=",maptype, "nline=",nline,"\n")
   line.header <- matrix(NA,ncol=9,nrow=nline)
   for(i in 1:nline) {
     line.header[i,1] <- readBin(lf,"int",size=type_settings$int,n=1) # signed=F does not work for int
@@ -89,6 +89,12 @@ map.read.bin <- function(infile, scale=180/pi) {
   names(gon) <- c("offset","length","padding1","padding2","W","S","E","N")
   gondata <- readBin(gf,"int",size=type_settings$int,n=sum(gon$length))
   close(gf)
-  list(line=line,gon=gon,xy=xy,data=gondata)
+
+### names
+  names <- read.table(paste(infile,'.N',sep=''),sep='\t',quote="",
+                   stringsAsFactors=FALSE,
+                   col.names=c('name','index'))$name
+
+  list(line=line,gon=gon,xy=xy,data=gondata,names=names)
 }
-  
+

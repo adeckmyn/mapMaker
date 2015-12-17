@@ -86,26 +86,26 @@ map.export.bin <- function(ww, outfile, scale=pi/180){
                    N = vapply(1:nline,function(ll) max(ly[ww$line$begin[ll]:ww$line$end[ll]]),FUN.VALUE=1)
                  )
 
-  ff <- file(lfile, open="wb")
+  lf <- file(lfile, open="wb")
 # header part
-  writeBin(as.integer(2),ff,size=type_settings$int) # 2=line type "sphere"
-  writeBin(as.integer(ww$line$nline),ff,size=type_settings$int)
+  writeBin(as.integer(2),lf,size=type_settings$int) # 2=line type "sphere"
+  writeBin(as.integer(ww$line$nline),lf,size=type_settings$int)
 # for every line: offset, npair, left & right polygon, SW & NE limits
-  offset <- 2*type_settings$int + nline * (type_settings$int + 3*type_settings$short + 4*type_settings$float)
+  offset <- 2*type_settings$int + nline * (type_settings$int + 4*type_settings$short + 4*type_settings$float)
   if (any(ww$line$length >= 2^(8*type_settings$short - 1))) stop("Line length too long: R can not write unsigned short.")
   for(i in 1:nline){
-    writeBin(as.integer(offset),ff,size=type_settings$int)
-    writeBin(as.integer(ww$line$length[i]),ff,size=type_settings$short)
-    writeBin(as.integer(ww$line$left[i]),ff,size=type_settings$short)
-    writeBin(as.integer(ww$line$right[i]),ff,size=type_settings$short)
-    writeBin(as.integer(0),ff,size=type_settings$short) # padding: a hack
-    writeBin(as.numeric(line.limits[i,]),ff,size=type_settings$float)
+    writeBin(as.integer(offset),lf,size=type_settings$int)
+    writeBin(as.integer(ww$line$length[i]),lf,size=type_settings$short)
+    writeBin(as.integer(ww$line$left[i]),lf,size=type_settings$short)
+    writeBin(as.integer(ww$line$right[i]),lf,size=type_settings$short)
+    writeBin(as.integer(0),lf,size=type_settings$short) # padding: a hack
+    writeBin(as.numeric(line.limits[i,]),lf,size=type_settings$float)
     offset <- offset + 2*ww$line$length[i]*type_settings$float
   }
 # xy data
   xy <- rbind(lx,ly)[,!is.na(lx)]
-  writeBin(as.numeric(xy),ff,size=type_settings$float)
-  close(ff)
+  writeBin(as.numeric(xy),lf,size=type_settings$float)
+  close(lf)
 
 ################
 # POLYGON DATA #
@@ -124,21 +124,21 @@ map.export.bin <- function(ww, outfile, scale=pi/180){
                   N = vapply(1:ngon, function(gg) max(line.limits$N[which(1:nline %in% 
                                              abs(ww$gon$data[ww$gon$begin[gg]:ww$gon$end[gg]]))]),FUN.VALUE=1)
                  )
-  ff <- file(gfile, open="wb")
+  gf <- file(gfile, open="wb")
 
 # header
-  writeBin(as.integer(ww$gon$ngon),ff,size=type_settings$short)
-  offset <- type_settings$short + ngon * (type_settings$int + + type_settings$char + 4*type_settings$float)
-  for (gg in 1:ngon) {
-    writeBin(as.integer(offset),ff,size=type_settings$int)
-    writeBin(as.integer(ww$gon$length[gg]),ff,size=type_settings$char)
-    writeBin(integer(3),ff,size=type_settings$char) #padding
-    writeBin(as.numeric(gon.limits[i,]),ff,size=type_settings$float)
-    offset <- offset + ww$gon$length[gg] * type_settings$int
+  writeBin(as.integer(ww$gon$ngon),gf,size=type_settings$short)
+  offset <- type_settings$short + ngon * (type_settings$int + 4*type_settings$char + 4*type_settings$float)
+  for (for i in 1:ngon) {
+    writeBin(as.integer(offset),gf,size=type_settings$int)
+    writeBin(as.integer(ww$gon$length[i]),gf,size=type_settings$char)
+    writeBin(integer(3),gf,size=type_settings$char) #padding
+    writeBin(as.numeric(gon.limits[i,]),gf,size=type_settings$float)
+    offset <- offset + ww$gon$length[i] * type_settings$int
   } 
 # data 
-  writeBin(as.integer(ww$gon$data),ff,size=type_settings$int)
-  close(ff)
+  writeBin(as.integer(ww$gon$data),gf,size=type_settings$int)
+  close(gf)
 
 #########
 # NAMES # (identical to ascii version!)
