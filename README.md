@@ -62,12 +62,12 @@ Or step by step:
 7. Fix which polygons are at the left and right of every polyline.  
 `be6 <- map.LR(be5)`
 
-To use this data set, we must export it to a file(s) and make it available to 'map()'. This involves a special combination of an R variable giving the name of the environment variable that holds the path to the map data.
+To use this data set, we must export it to file(s) and make it available to 'map()'. This involves a special combination of an R variable giving the name of the environment variable that holds the path to the map data.
 
 1. Export as a binary file.  
-`map.export.bin(be5,file=paste(MY_MAP_PATH,"belgium",sep="/"))`
-2. Make the map available to `maps`. This requires setting an environment variable and a local variable.  
-`Sys.setenv("R_MY_MAP_PATH"=MY_MAP_PATH)`  
+`map.export.bin(be5,file="/tmp/belgium")`
+2. Make the map available to `maps`. This requires setting an environment variable and a local variable. Notice the trailing '//'.  
+`Sys.setenv("R_MY_MAP_PATH"="/tmp/")`  
 `belgiumMapEnv <- "R_MY_MAP_PATH"`
 3. Finished!  
 `map(database="belgium")`
