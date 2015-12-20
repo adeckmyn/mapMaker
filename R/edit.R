@@ -23,6 +23,15 @@ which.gon <- function(ll,ww){
          FUN.VALUE=1)
 }
 
+# to which line does a given point belong?
+which.line <- function(pp,ww){
+  which(ww$line$begin <= pp & ww$line$end >= pp)
+}
+
+
+
+
+
 #########################
 
 gon.remove <- function(ww, i){

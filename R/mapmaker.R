@@ -10,13 +10,28 @@
 #          but precision 9 may give numbers > maxint=2^31
 #          SO: use doubles, but fill them with (large) integers
 # BUT: when writing to binary map format, they are reduced to 32 bit float!
-map.make <- function(map, precision=1.E-8){
+
+
+map.clean <- function(map, precision=1.E-8) {
+  nx <- length(map$x)
+  cleanup <- .C("mapclean",x=map$x,y=map$y, len=as.integer(nx),
+                x_out=numeric(nx),y_out=numeric(nx),len_out=integer(1),
+                precision=as.numeric(precision),
+                NAOK=TRUE)
+  if(cleanup$len_out < nx) cat("mapclean removed",nx-cleanup$len_out,"points.\n")
+#  data.frame(x=result$nx[1:result$nlen],y=result$ny[1:result$nlen])
+  list(x = cleanup$x_out[1:cleanup$len_out],
+       y = cleanup$y_out[1:cleanup$len_out],
+       names=map$names)
+}
+
+map.make <- function(map){
   nline <- sum(is.na(map$x)) + 1
   ngon <- nline
 # make sure there is no trailing NA
-  if (is.na(map$x[length(map$x)])) {
-    map$x <- map$x[-length(map$x)]
-    map$y <- map$y[-length(map$x)]
+  if (is.na(tail(map$x,1))) {
+    map$x <- head(map$x,-1)
+    map$y <- head(map$y,-1)
   }
   gondata <- rep(NA,2*ngon)
   gondata[seq(1,2*ngon,by=2)] <- 1:ngon
@@ -25,24 +40,10 @@ map.make <- function(map, precision=1.E-8){
               end   = seq(1,2*ngon-1,by=2),
               data   = gondata,
               ngon = ngon)
-# You need to do some rounding later on!
-# some parts of NE 1:10 have a precision of 9 decimals
-#  map$x <- round(map$x, rounding)
-#  map$y <- round(map$y, rounding)
-# remove duplicate points
-# from a polygon dataset
-# because they mess up the segment-splitting
-  NX <- length(map$x)
-  cleanup <- .C("mapclean",x=map$x,y=map$y, len=as.integer(NX),
-                x_out=numeric(NX),y_out=numeric(NX),len_out=integer(1),precision=as.numeric(precision),
-                NAOK=TRUE)
-  if(cleanup$len_out < NX) cat("mapclean removed",NX-cleanup$len_out,"points.\n")
-#  data.frame(x=result$nx[1:result$nlen],y=result$ny[1:result$nlen])
-  x <- cleanup$x_out[1:cleanup$len_out]
-  y <- cleanup$y_out[1:cleanup$len_out]
-  linoffset <- c(1,which(is.na(x))+1)
+
+  linoffset <- c(1,which(is.na(map$x))+1)
   linlen <- c(linoffset[2:nline]-linoffset[1:(nline-1)] - 1,
-              length(x)- linoffset[ngon] + 1)
+              length(map$x)- linoffset[ngon] + 1)
   line <- list(begin = linoffset,
                end   = linoffset + linlen - 1,
                length = linlen,
@@ -50,9 +51,8 @@ map.make <- function(map, precision=1.E-8){
                right = 1:nline,
                nline = nline)
 
-  list(x=x, y=y, gon=gon, line=line, names=map$names)
+  list(x=map$x, y=map$y, gon=gon, line=line, names=map$names)
 }
-
 
 # step 2 : split al lines into segments 
 map.split <- function(ww) {
@@ -220,7 +220,9 @@ map.LR <- function(ww) {
 
 map.gon2line <- function(map, precision=1.E-8, quiet=FALSE){
   if (!quiet) cat("Cleaning map data to precision", precision, ".\n")
-  ww <- map.make(map, precision)
+  ww <- map.clean(map, precision)
+  if (!quiet) cat("Adding line & polygon indices.\n")
+  ww <- map.make(map)
   if (!quiet) cat("Splitting all polygons into line segments.\n")
   ww <- map.split(ww)
   if (!quiet) cat("Removing duplicate segments.\n")
