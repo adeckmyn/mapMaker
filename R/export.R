@@ -5,16 +5,18 @@ map.export <- function(ww, outfile, type="bin", ...) {
 }
 
 map.export.ascii <- function(ww, outfile, scale=pi/180, ndec=10) {
+  nline <- dim(ww$line)[1]
+  ngon <- dim(ww$gon)[1]
 # line data
   lfile <- paste(outfile,'.line',sep='')
   lx <- round(ww$x * scale,ndec)
   ly <- round(ww$y * scale,ndec)
   system(paste('rm -f',lfile))
-  for(loc in 1:ww$line$nline){
-    write(paste(ww$line$left[loc],ww$line$right[loc]),file=lfile,append=TRUE)
+  for(i in 1:nline){
+    write(paste(ww$line$left[i],ww$line$right[i]),file=lfile,append=TRUE)
     write(rbind('',format(
-            rbind(lx[ww$line$begin[loc]:ww$line$end[loc]],
-                  ly[ww$line$begin[loc]:ww$line$end[loc]]),
+            rbind(lx[ww$line$begin[i]:ww$line$end[i]],
+                  ly[ww$line$begin[i]:ww$line$end[i]]),
             nsmall=ndec)),
           file=lfile,append=TRUE,ncolumns=3)
 
@@ -23,22 +25,22 @@ map.export.ascii <- function(ww, outfile, scale=pi/180, ndec=10) {
 # linestat
   lsfile <- paste(outfile,'.linestats',sep='')
   system(paste('rm -f',lsfile))
-  write(paste(ww$line$nline,max(ww$line$length)),file=lsfile,append=TRUE)
+  write(paste(nline,max(ww$line$length)),file=lsfile,append=TRUE)
 
 # gon
-  ind <- 1:ww$gon$ngon
+  ind <- 1:ngon
   gfile <- paste(outfile,'.gon',sep='')
   system(paste('rm -f',gfile))
-  for(loc in 1:ww$gon$ngon){
+  for(i in 1:ngon){
 ### for exact match: 1 blank before the numbers
-    write(paste('',ww$gon$data[ww$gon$begin[loc]:ww$gon$end[loc]]),
+    write(paste('',ww$gondata[ww$gon$begin[i]:ww$gon$end[i]]),
           file=gfile,append=TRUE,ncolumns=1)
     write('EOR', file=gfile,append=TRUE)
   }
 # gonstat
   gsfile <- paste(outfile,'.gonstats',sep='')
   system(paste('rm -f',gsfile))
-  write(paste(ww$gon$ngon,max(ww$gon$length)),file=gsfile,append=TRUE)
+  write(paste(ngon,max(ww$gon$length)),file=gsfile,append=TRUE)
 
 ## names
   nfile <- paste(outfile,'.name',sep='')
@@ -61,12 +63,12 @@ map.export.ascii <- function(ww, outfile, scale=pi/180, ndec=10) {
 ### file size must be < 2^31 (OK)
 ### UNFORTUNATELY: the original C code writes the struct directly -> compiler-dependent padding...
 map.export.bin <- function(ww, outfile, scale=pi/180){
+  nline <- dim(ww$line)[1]
+  ngon <- dim(ww$gon)[1]
   type_settings <- .C("mapsizes",result=integer(4))$result
   names(type_settings)=c("char","short","int","float")
 #  cat("platform:",type_settings,"\n")
 
-  nline <- ww$line$nline
-  ngon <- ww$gon$ngon
   type_settings <- as.list(type_settings)
 
 #############
@@ -89,7 +91,7 @@ map.export.bin <- function(ww, outfile, scale=pi/180){
   lf <- file(lfile, open="wb")
 # header part
   writeBin(as.integer(2),lf,size=type_settings$int) # 2=line type "sphere"
-  writeBin(as.integer(ww$line$nline),lf,size=type_settings$int)
+  writeBin(as.integer(nline),lf,size=type_settings$int)
 # for every line: offset, npair, left & right polygon, SW & NE limits
   offset <- 2*type_settings$int + nline * (type_settings$int + 4*type_settings$short + 4*type_settings$float)
   if (any(ww$line$length >= 2^(8*type_settings$short - 1))) stop("Line length too long: R can not write unsigned short.")
@@ -116,18 +118,18 @@ map.export.bin <- function(ww, outfile, scale=pi/180){
 # SW and NE limits of every polygon (calculate from the line element limits OR reconstitute whole polygon)
   gon.limits <- data.frame(
                   W = vapply(1:ngon, function(gg) min(line.limits$W[which(1:nline %in% 
-                                             abs(ww$gon$data[ww$gon$begin[gg]:ww$gon$end[gg]]))]),FUN.VALUE=1),
+                                             abs(ww$gondata[ww$gon$begin[gg]:ww$gon$end[gg]]))]),FUN.VALUE=1),
                   S = vapply(1:ngon, function(gg) min(line.limits$S[which(1:nline %in% 
-                                             abs(ww$gon$data[ww$gon$begin[gg]:ww$gon$end[gg]]))]),FUN.VALUE=1),
+                                             abs(ww$gondata[ww$gon$begin[gg]:ww$gon$end[gg]]))]),FUN.VALUE=1),
                   E = vapply(1:ngon, function(gg) max(line.limits$E[which(1:nline %in% 
-                                             abs(ww$gon$data[ww$gon$begin[gg]:ww$gon$end[gg]]))]),FUN.VALUE=1),
+                                             abs(ww$gondata[ww$gon$begin[gg]:ww$gon$end[gg]]))]),FUN.VALUE=1),
                   N = vapply(1:ngon, function(gg) max(line.limits$N[which(1:nline %in% 
-                                             abs(ww$gon$data[ww$gon$begin[gg]:ww$gon$end[gg]]))]),FUN.VALUE=1)
+                                             abs(ww$gondata[ww$gon$begin[gg]:ww$gon$end[gg]]))]),FUN.VALUE=1)
                  )
   gf <- file(gfile, open="wb")
 
 # header
-  writeBin(as.integer(ww$gon$ngon),gf,size=type_settings$short)
+  writeBin(as.integer(ngon),gf,size=type_settings$short)
   offset <- type_settings$short + ngon * (type_settings$int + 4*type_settings$char + 4*type_settings$float)
   for (i in 1:ngon) {
     writeBin(as.integer(offset),gf,size=type_settings$int)
@@ -137,7 +139,7 @@ map.export.bin <- function(ww, outfile, scale=pi/180){
     offset <- offset + ww$gon$length[i] * type_settings$int
   } 
 # data 
-  writeBin(as.integer(ww$gon$data),gf,size=type_settings$int)
+  writeBin(as.integer(ww$gondata[!is.na(ww$gondata)]),gf,size=type_settings$int)
   close(gf)
 
 #########
