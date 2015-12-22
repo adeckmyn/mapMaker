@@ -1,5 +1,6 @@
 insert.points <- function(x, i, y) {
 # insert points y at locations i in vector x
+  if (length(i)==0) return(x)
   if (max(i) > length(x)) stop("Vector x too short.")
   if (length(i) != length(y)) {
     if (length(y)==1) y <- rep(y,length(i))
@@ -8,21 +9,26 @@ insert.points <- function(x, i, y) {
   }
   ni <- length(i)
   si <- order(i)
-  i <- c(i[si],length(x)+1)
+  index <- c(i[si],length(x)+1)
   y <- y[si]
 
-  x1 <- c(head(x,i[1]-1), 
-          lapply(1:ni, function(j) c(y[j], x[i[j]:(i[(j + 1)] - 1)])) )
+  x1 <- c(head(x,index[1]-1), 
+          lapply(1:ni, function(j) c(y[j], x[index[j]:(index[(j + 1)] - 1)])) )
   unlist(x1)
 }
 
 ############################
 
 line.parse <- function(ww) {
+  nline <- sum(is.na(ww$x)) + 1
   line <- data.frame(begin = c(1,which(is.na(ww$x))+1),
                end = c(which(is.na(ww$x))-1, length(ww$x)))
   line$length <- line$end - line$begin + 1
-
+## keep line.parse independent from gon ?
+  if (!is.null(ww$gon)) {
+    line$left  <- vapply(1:nline, function(i) which.gon(ww,-i)[1],FUN.VALUE=1)
+    line$right <- vapply(1:nline, function(i) which.gon(ww, i)[1],FUN.VALUE=1)
+  }
   line
 }
 
@@ -124,8 +130,8 @@ line.split <- function(ww, p) {
   if (is.na(ww$x[p])) stop("Can't split at NA.")
   pline <- which.line(ww, p)
 
-  ww$x <- c(head(ww$x,p),NA,tail(ww$x,p-1))
-  ww$y <- c(head(ww$y,p),NA,tail(ww$y,p-1))
+  ww$x <- c(head(ww$x,p),NA,tail(ww$x,-(p-1)))
+  ww$y <- c(head(ww$y,p),NA,tail(ww$y,-(p-1)))
   ww$line <- line.parse(ww)
   
   iind1 <- which(ww$gondata > pline)
@@ -134,10 +140,11 @@ line.split <- function(ww, p) {
   iind2 <- which(ww$gondata < -pline)
   ww$gondata[iind2] <- ww$gondata[iind2] - 1
 
-  ww$gondata <- insert.points(ww$data, which(ww$gondata == pline)+1, pline+1) 
-  ww$gondata <- insert.points(ww$data, which(ww$gondata == -pline), -pline-1) 
+  ww$gondata <- insert.points(ww$gondata, which(ww$gondata == pline)+1, pline+1) 
+  iind3 <- which(ww$gondata == -pline)
+  if (length(iind3)>0) ww$gondata <- insert.points(ww$gondata, iind3, -pline-1) 
 
-  ww$gon <- parse.gon(ww)
+  ww$gon <- gon.parse(ww)
 
   ww
 }

@@ -192,8 +192,8 @@ map.merge.segments <- function(ww,valence=NULL) {
 
 map.LR <- function(ww) {
   nline <- dim(ww$line)[1]
-  ww$line$left  <- vapply(1:nline, function(ll) which.gon(ww,-ll)[1],FUN.VALUE=1)
-  ww$line$right <- vapply(1:nline, function(ll) which.gon(ww, ll)[1],FUN.VALUE=1)
+  ww$line$left  <- vapply(1:nline, function(i) which.gon(ww,-i)[1],FUN.VALUE=1)
+  ww$line$right <- vapply(1:nline, function(i) which.gon(ww, i)[1],FUN.VALUE=1)
   ww
 }
 

@@ -12,6 +12,7 @@ map.export.ascii <- function(ww, outfile, scale=pi/180, ndec=10) {
   lx <- round(ww$x * scale,ndec)
   ly <- round(ww$y * scale,ndec)
   system(paste('rm -f',lfile))
+  if (is.null(ww$line$left)) ww <- map.LR(ww)
   for(i in 1:nline){
     write(paste(ww$line$left[i],ww$line$right[i]),file=lfile,append=TRUE)
     write(rbind('',format(
