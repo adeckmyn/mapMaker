@@ -76,8 +76,6 @@ To use this data set, we must export it to file(s) and make it available to 'map
 Turning the polygons into lines requires that the borders of polygons match *exactly*. That is often not the case. So the default is to first set all co-ordinates that are equal up to 8 decimals to be numerically equal. We do this as a first step, so in later steps we can assume common borders of polygons to be numerically identical. The binary format of 'maps' uses 32 bit floats, not double, so the default of 8 decimals seems reasonable.
 
 ## TO DO
+- improve documentation (roxygen2)
 - use the data sets provide by rnaturalearth, rather than downloading yourself
-- Joining polygons that have been split to opposite sides of the map (e.g. Russia). 
-- Fix Antarctica (in NE the polygon has a "cosmetic" extra line, which you don't want if you are going to use projections!
-- Further editing of maps...
 

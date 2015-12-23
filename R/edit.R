@@ -1,3 +1,10 @@
+#' Insert a list of points into a vector at given positions
+#' 
+#' @param x A vector
+#' @param i A vector of indices where to insert new values
+#' @param y A vector of values to be inserted. Either length 1 or the same length as i.
+#' @return A vector with the length(i) points inserted.
+#' 
 insert.points <- function(x, i, y) {
 # insert points y at locations i in vector x
   if (length(i)==0) return(x)
@@ -18,7 +25,10 @@ insert.points <- function(x, i, y) {
 }
 
 ############################
-
+#' Parse all the lines (co-ordinates) of a map and build an index
+#' 
+#' @param ww A map object
+#' 
 line.parse <- function(ww) {
   nline <- sum(is.na(ww$x)) + 1
   line <- data.frame(begin = c(1,which(is.na(ww$x))+1),
