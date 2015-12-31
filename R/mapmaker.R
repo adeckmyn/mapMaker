@@ -38,9 +38,9 @@ map.make <- function(map){
   gondata <- rep(NA,2*ngon-1)
   gondata[seq(1,2*ngon,by=2)] <- 1:ngon
 
-  ww <- list(x=map$x, y=map$y, gondata=gondata, names=map$names)
-  ww$line <- line.parse(ww)
+  ww <- list(x=map$x, y=map$y, gondata=gondata, names=map$names, gon=NA, line=NA)
   ww$gon  <- gon.parse(ww)
+  ww$line <- line.parse(ww)
 
   ww
 }
@@ -199,11 +199,11 @@ map.LR <- function(ww) {
 
 ###############################################################################
 
-map.gon2line <- function(map, precision=1.E-8, quiet=FALSE){
+map.gon2line <- function(mapdb, precision=1.E-8, quiet=FALSE){
   if (!quiet) cat("Cleaning map data to precision", precision, ".\n")
-  ww <- map.clean(map, precision)
+  ww <- map.clean(mapdb, precision)
   if (!quiet) cat("Adding line & polygon indices.\n")
-  ww <- map.make(map)
+  ww <- map.make(ww)
   if (!quiet) cat("Splitting all polygons into line segments.\n")
   ww <- map.split(ww)
   if (!quiet) cat("Removing duplicate segments.\n")

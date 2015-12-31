@@ -12,9 +12,12 @@ read.regions <- function(database, countries,namefield){
 # TODO : if two namefields are given: paste(..,sep=":")
 #  require(maptools)
   if (is.character(database)) database <- readShapePoly(database)
-  a2 <- database@data[[which(tolower(names(database))=="iso_a2")]]
-  if (!is.null(countries)) database <- database[a2 %in% countries,]
-
+  
+  if (!is.null(countries)) {
+    a2 <- database@data[[which(tolower(names(database))=="iso_a2")]]
+    database <- database[a2 %in% countries,]
+  }
+  
   region.names <- as.character(database[[namefield]])
   nregions <- length(region.names)
 
