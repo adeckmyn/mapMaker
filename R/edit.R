@@ -158,3 +158,14 @@ line.split <- function(ww, p) {
 
   ww
 }
+
+###
+
+gon.check <- function(ww, i){
+  gon <- get.gon(ww, i)
+  for(j in gon){
+    lin <- get.line(ww,j)
+    print(c(lin$x[1],lin$y[1]),20)
+    print(c(tail(lin$x,1),tail(lin$y,1)),20)
+  }
+}

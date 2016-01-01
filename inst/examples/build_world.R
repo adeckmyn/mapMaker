@@ -1,8 +1,3 @@
-## EXAMPLE SCRIPT:
-## This is the script that generates the new 'world' database
-## in the maps package.
-## Only the polygon names are different.
-
 library(mapMaker)
 infile <- "~/code/NaturalEarth/v3.1.0/data/ne_50m_admin_0_countries_lakes"
 outfile <- "~/code/NaturalEarth/build.world50/w50"
@@ -12,9 +7,8 @@ assign(paste0(basename(outfile),"MapEnv"),"MYMAPS")
 ######################
 
 ww <- map.make(read.worldmap(infile))
-############################################################
-### Antarctica: remove fake points & don't close polygon ###
-############################################################
+
+### Antarctica: remove fake points & don't close polygon
 find.antarctica <- function(ww){
   i <- which(ww$y < -85)[1]
   which(ww$line$begin <= i & ww$line$end >= i)
@@ -24,9 +18,16 @@ p121 <- get.line(ww,121)
 p121 <- p121[c(2070:2805,2:1804),]
 ww <- line.change(ww,121,p121)
 
-################################
-### Recombine split polygons ###
-################################
+### Recombine split polygons
+
+remove.line.gon <- function(ww,i){
+# this  assumes every lines is a polygon 
+# or just run gon.remove & line.remove
+  ww$x <- c(head(ww$x,ww$line$begin[i]-1),tail(ww$x,-(ww$line$end[i]+1)))
+  ww$y <- c(head(ww$y,ww$line$begin[i]-1),tail(ww$y,-(ww$line$end[i]+1)))
+  ww$names <- ww$names[-i]
+  map.make(ww)
+}
 
 w1 <- unique(unlist(lapply(which(ww$x < -179.99),function(i) which.line(ww, i))))
 e1 <- unique(unlist(lapply(which(ww$x >  179.99),function(i) which.line(ww, i))))
@@ -47,7 +48,13 @@ w552$x <- w552$x + 360
 w554$x <- w554$x + 360
 w556$x <- w556$x + 360
 
+# plot(rbind(w552,e551))
+# points(w552,type="o",col=2)
 p551 <- rbind(e551[1:5,],w552[7:11,],e551[1,])
+# check:
+# plot(p551,type="o")
+# points(e551,type="o",col2)
+# points(w552,type="o",col=3)
 ww <- line.change(ww,551,p551)
 
 p553 <- rbind(e553[1:4,],w554[4:7,],e553[1,])
@@ -67,22 +74,10 @@ p1328 <- rbind(e1328[1:633,],w1285[c(337:338,2:321),],e1328[636:4599,])
 ww <- line.change(ww,1328,p1328)
 
 # now remove superfluous polygons
-remove.line.gon <- function(ww,i){
-# this  assumes every lines is a polygon 
-# or just run gon.remove & line.remove
-  ww$x <- c(head(ww$x,ww$line$begin[i]-1),tail(ww$x,-(ww$line$end[i]+1)))
-  ww$y <- c(head(ww$y,ww$line$begin[i]-1),tail(ww$y,-(ww$line$end[i]+1)))
-  ww$names <- ww$names[-i]
-  ww$line <- line.parse(ww)
-  ww$gon <- gon.parse(ww)
-}
-
 for (i in rev(sort(w1))) ww <- remove.line.gon(ww,i)
 
-#############################
-### FIX BUGS in w50 data: ###
-#############################
 
+### FIX BUGS in w50 data:
 # (tracked by looking for line$length==2)
 # some of these may not be actual bugs
 # The China/India border is very contested
@@ -115,14 +110,89 @@ p1209 <- get.line(ww,1209)
 p1209 <- p1209[-(278:279),]
 ww <- line.change(ww, 1209, p1209)
 
+######################
+### Just add water ###
+######################
+### add lakes that are punched out: they shouldn't be borders to "0"
+lakes <- map.make(read.regions("~/code/NaturalEarth/v3.1.0/data/ne_50m_lakes",
+                      namefield="name",countries=NULL))
+
+#erie <- get.line(lakes,30)
+#stclair <- get.line(lakes,55)
+# combine st Clair and Erie
+#erie <- rbind(erie[-1,],stclair[-1,])
+#ontario <- get.line(lakes,49)
+#greatlakes <- get.line(lakes,7)
+# this polygon misses the border point usa/Canada ???
+
+#titicaca <- get.line(lakes,61)
+#tangayika <- get.line(lakes,6)
+
+#ww0 <- ww
+
+#ww$names <- c(ww$names, "Great Lakes:Erie","Great Lakes:Superior,Huron,Michigan",
+#              "Great Lakes:Ontario",
+#              "Lake Titicaca","Lake Tangayika")
+              
+#ww$x <- c(ww$x,NA,erie$x,NA,greatlakes$x,NA,ontario$x,NA,
+#          titicaca$x,NA,tangayika$x)
+#ww$y <- c(ww$y,NA,erie$y,NA,greatlakes$y,NA,ontario$y,NA,
+#          titicaca$y,NA,tangayika$y)
+#ww <- map.make(ww)
+
 # create line database
 ww0 <- ww
-ww <- map.gon2line(ww0)
+ww <- map.gon2line(ww0,precision=1E-8)
 ww1 <- ww
 
-#######################################################
-### split meridian crossings (necessary for world2) ###
-#######################################################
+### lakes
+### we can define the border lakes from knowing the line numbers
+greatlakes <- c(-1922,-467)
+erie <- c(-1923,-465)
+ontario <- c(-1924,-463)
+spednic <- c(-1925,-375)
+## TODO: all islands in the great lakes still have border "0": adapt manually at the end
+## worldHires doesn't have tis feature, so I won't bother for now
+
+titicaca <- c(-301,-1490,-297,-1489)
+
+## there is something strange with lake Kariba: a little polygon of Zambia on the other shore...
+kariba <- c(-2053,-2057,-2050,-2058,-2056)
+malawi <- c(-1382,-1368, -1381,-1834) #  -1436,-1888,-1435,-1422)
+tanganyika <- c(-1836, -2055, -606, -229)
+kivu <- c(-604,-1723)#-1777,-613)
+edward <- c(-601,-1841)
+albert <- c(-599,-1842)
+
+victoria <- c(-1832,-1840, -1212 ) #-1886,-1894,-1266)
+
+constance <- c(-512,-659,-219)
+
+peipus <- c(-1689,-734)
+
+caspian <- c(-224,-1686,-1206,-1807,-1124)
+aral <- c(-1203,-1997,-1200,-1999)
+sarygamysh <- c(-1809,-1998)
+
+khanka <- c(-1685,-561)
+
+ww$names <- c(ww$names, "Great Lakes:Erie","Great Lakes:Superior,Huron,Michigan",
+              "Great Lakes:Ontario","Lake Spednic","Lake Titicaca",
+              "Lake Kariba","Lake Malawi","Lake Tanganyika","Lake Kivu",
+              "Lake Edward","Lake Albert","Lake Victoria",
+              "Lake Constance","Lake Peipus","Caspian Sea","Aral Sea","Lake Sarygamysh",
+              "Lake Khanka"
+)
+ww$gondata <- c(ww$gondata,NA,erie,NA,greatlakes,NA,ontario,NA,spednic,NA,titicaca,NA,
+                kariba,NA,malawi,NA,tanganyika,NA,kivu,NA,edward,NA,albert,NA,victoria,
+                NA,constance,NA,peipus,NA,caspian,NA,aral,NA,sarygamysh,NA,khanka)
+
+ww$gon <- gon.parse(ww)
+ww <- map.LR(ww)
+
+
+
+### split meridian crossings (necessary for world2)
 
 # insert break points at 0 (for world 2)
 i <- which(head(ww$x,-1) * tail(ww$x,-1) < 0)
@@ -132,14 +202,19 @@ yi <- ww$y[i] + (ww$y[(i+1)]-ww$y[i])/(ww$x[(i+1)]-ww$x[i]) * (xi-ww$x[i])
 ww$x <- insert.points(ww$x, i+1, 0)
 ww$y <- insert.points(ww$y, i+1, yi)
 ww$line <- line.parse(ww)
-
 # split lines at 0
 splits <- which(ww$x==0)
 for (i in rev(sort(splits))) ww <- line.split(ww, i)
 
-######################
-### export to file ###
-######################
+
+
+# CHECK
+zl <- which(ww$line$length == 2)
+zp <- unlist(lapply(zl,function(i) which.gon(ww,i)))
+
+# other check: look for polygons with more than one sea-border (0)
+# or plot without internal boundaries
+# or countries that have several common lines: probably there is a bug inbetween
 ww <- map.LR(ww)
 map.export.bin(ww, outfile)
 map.export.ascii(ww, outfile, ndec=8)
