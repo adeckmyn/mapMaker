@@ -110,61 +110,34 @@ p1209 <- get.line(ww,1209)
 p1209 <- p1209[-(278:279),]
 ww <- line.change(ww, 1209, p1209)
 
-######################
-### Just add water ###
-######################
-### add lakes that are punched out: they shouldn't be borders to "0"
-lakes <- map.make(read.regions("~/code/NaturalEarth/v3.1.0/data/ne_50m_lakes",
-                      namefield="name",countries=NULL))
-
-#erie <- get.line(lakes,30)
-#stclair <- get.line(lakes,55)
-# combine st Clair and Erie
-#erie <- rbind(erie[-1,],stclair[-1,])
-#ontario <- get.line(lakes,49)
-#greatlakes <- get.line(lakes,7)
-# this polygon misses the border point usa/Canada ???
-
-#titicaca <- get.line(lakes,61)
-#tangayika <- get.line(lakes,6)
-
-#ww0 <- ww
-
-#ww$names <- c(ww$names, "Great Lakes:Erie","Great Lakes:Superior,Huron,Michigan",
-#              "Great Lakes:Ontario",
-#              "Lake Titicaca","Lake Tangayika")
-              
-#ww$x <- c(ww$x,NA,erie$x,NA,greatlakes$x,NA,ontario$x,NA,
-#          titicaca$x,NA,tangayika$x)
-#ww$y <- c(ww$y,NA,erie$y,NA,greatlakes$y,NA,ontario$y,NA,
-#          titicaca$y,NA,tangayika$y)
-#ww <- map.make(ww)
-
 # create line database
 ww0 <- ww
 ww <- map.gon2line(ww0,precision=1E-8)
 ww1 <- ww
 
-### lakes
+######################
+### Just add water ###
+######################
+### add the "punched out" boundary lakes as polygons
+### so the will also be filled when fill=TRUE
 ### we can define the border lakes from knowing the line numbers
 greatlakes <- c(-1922,-467)
 erie <- c(-1923,-465)
 ontario <- c(-1924,-463)
 spednic <- c(-1925,-375)
-## TODO: all islands in the great lakes still have border "0": adapt manually at the end
-## worldHires doesn't have tis feature, so I won't bother for now
 
 titicaca <- c(-301,-1490,-297,-1489)
 
 ## there is something strange with lake Kariba: a little polygon of Zambia on the other shore...
-kariba <- c(-2053,-2057,-2050,-2058,-2056)
-malawi <- c(-1382,-1368, -1381,-1834) #  -1436,-1888,-1435,-1422)
+## a glitch when punching out the lakes?
+kariba <- c(-2056,-2058,-2050,-2057,-2053)
+malawi <- c(-1834,-1381,-1368,-1382)
 tanganyika <- c(-1836, -2055, -606, -229)
-kivu <- c(-604,-1723)#-1777,-613)
+kivu <- c(-604,-1723)
 edward <- c(-601,-1841)
 albert <- c(-599,-1842)
 
-victoria <- c(-1832,-1840, -1212 ) #-1886,-1894,-1266)
+victoria <- c(-1832,-1840, -1212 )
 
 constance <- c(-512,-659,-219)
 
