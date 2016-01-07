@@ -169,3 +169,20 @@ gon.check <- function(ww, i){
     print(c(tail(lin$x,1),tail(lin$y,1)),20)
   }
 }
+
+###
+
+line.append <- function(ww, data) {
+  ww$x <- c(ww$x, NA, data[,1])
+  ww$y <- c(ww$y, NA, data[,2])
+  ww$line <- line.parse(ww)
+  ww
+}
+
+gon.append <- function(ww, data, name) {
+  ww$names <- c(ww$names,name)
+  ww$gondata <- c(ww$gondata, NA, data)
+  ww$gon <- gon.parse(ww)
+  ww
+}
+
