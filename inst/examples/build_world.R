@@ -1,6 +1,7 @@
 library(mapMaker)
 infile <- "~/code/NaturalEarth/v3.1.0/data/ne_50m_admin_0_countries_lakes"
 outfile <- "~/code/NaturalEarth/build.world50/w50"
+outfile2 <- "~/code/NaturalEarth/build.world50/w50b"
 Sys.setenv("MYMAPS"=paste0(dirname(outfile),"/"))
 assign(paste0(basename(outfile),"MapEnv"),"MYMAPS")
 
@@ -125,6 +126,8 @@ greatlakes <- c(-1922,-467)
 erie <- c(-1923,-465)
 ontario <- c(-1924,-463)
 spednic <- c(-1925,-375)
+## TODO: all islands in the great lakes still have border "0": adapt manually at the end
+## worldHires doesn't have tis feature, so I won't bother for now
 
 titicaca <- c(-301,-1490,-297,-1489)
 
@@ -167,7 +170,7 @@ ww <- map.LR(ww)
 
 ### split meridian crossings (necessary for world2)
 
-# insert break points at 0 (for world 2)
+# insert break points at 0
 i <- which(head(ww$x,-1) * tail(ww$x,-1) < 0)
 xi <- rep(0,length(i))
 yi <- ww$y[i] + (ww$y[(i+1)]-ww$y[i])/(ww$x[(i+1)]-ww$x[i]) * (xi-ww$x[i])
@@ -182,8 +185,8 @@ for (i in rev(sort(splits))) ww <- line.split(ww, i)
 
 
 # CHECK
-zl <- which(ww$line$length == 2)
-zp <- unlist(lapply(zl,function(i) which.gon(ww,i)))
+#zl <- which(ww$line$length == 2)
+#zp <- unlist(lapply(zl,function(i) which.gon(ww,i)))
 
 # other check: look for polygons with more than one sea-border (0)
 # or plot without internal boundaries
@@ -191,3 +194,217 @@ zp <- unlist(lapply(zl,function(i) which.gon(ww,i)))
 ww <- map.LR(ww)
 map.export.bin(ww, outfile)
 map.export.ascii(ww, outfile, ndec=8)
+
+##############
+### world2 ###
+##############
+ww1 <- ww
+
+zzz=which(ww$x==0)
+zerolines=vapply(zzz,function(x) which.line(ww,x),1)
+zerogons1 <- vapply(zerolines, function(x) which.gon(ww,x),1)
+zerogons2 <- vapply(zerolines, function(x) which.gon(ww,-x),1)
+zerogons=unique(c(zerogons1,zerogons2))
+
+# print(ww$names[zerogons])
+# Antarctica : reverse order of lines and add a closure (?)
+# the "closure line" is best added manually at the end
+pgon <- 121
+ant0 <- get.gon(ww,pgon)
+ww <- gon.change(ww, pgon, rev(ant0))
+
+# Burkina Faso
+pgon <- 189
+bf <- get.gon(ww,pgon)
+bf.w <- bf[c(8,1:3)]
+bf.e <- bf[4:7]
+bf.w.close <- rbind(tail(get.line(ww,bf[3]),1),head(get.line(ww,bf[8]),1))
+bf.e.close <- rbind(tail(get.line(ww,bf[7]),1),head(get.line(ww,bf[4]),1))
+bf.e.close$x[] <- 360
+
+ww <- line.append(ww, bf.e.close)
+ww <- gon.change(ww, pgon, c(bf.e, dim(ww$line)[1]))
+
+ww <- line.append(ww, bf.w.close)
+ww <- gon.append(ww, c(bf.w, dim(ww$line)[1]), name=paste0(ww$names[pgon],":west"))
+
+# Algeria
+pgon <- 498
+al <- get.gon(ww,pgon)
+al.w <- al[c(10,1:4)]
+al.e <- al[5:9]
+al.w.close <- rbind(tail(get.line(ww,al[4]),1),head(get.line(ww,al[10]),1))
+al.e.close <- rbind(tail(get.line(ww,al[9]),1),head(get.line(ww,al[5]),1))
+al.e.close$x[] <- 360
+
+ww <- line.append(ww, al.e.close)
+ww <- gon.change(ww, pgon, c(al.e, dim(ww$line)[1]))
+
+ww <- line.append(ww, al.w.close)
+ww <- gon.append(ww, c(al.w, dim(ww$line)[1]), name=paste0(ww$names[pgon],":west"))
+
+# Spain
+pgon <- 523
+gon0 <- get.gon(ww,pgon)
+# plot(get.fullgon(ww,pgon),type='l')
+# lines(c(0,0),c(-60,60))
+gon.w1 <- gon0[2:5]
+gon.w2 <- gon0[7]
+gon.e <- gon0[5:9]
+gon.w1.close <- rbind(tail(get.line(ww,gon0[5]),1),head(get.line(ww,gon0[2]),1))
+gon.w2.close <- rbind(tail(get.line(ww,gon0[7]),1),head(get.line(ww,gon0[7]),1))
+
+gon.e.close1 <- rbind(tail(get.line(ww,gon0[1]),1),head(get.line(ww,gon0[6]),1))
+gon.e.close2 <- rbind(tail(get.line(ww,gon0[6]),1),head(get.line(ww,gon0[8]),1))
+gon.e.close1$x[] <- 360
+gon.e.close2$x[] <- 360
+
+ww <- line.append(ww, gon.e.close1)
+ww <- line.append(ww, gon.e.close2)
+nl <- dim(ww$line)[1]
+ww <- gon.change(ww, pgon, c(gon0[1],nl-1,gon0[6],nl,gon0[8:10]))
+
+ww <- line.append(ww, gon.w1.close)
+ww <- gon.append(ww, c(gon.w1, dim(ww$line)[1]), name=paste0(ww$names[pgon],":west1"))
+
+ww <- line.append(ww, gon.w2.close)
+ww <- gon.append(ww, c(gon.w2, dim(ww$line)[1]), name=paste0(ww$names[pgon],":west2"))
+
+# France
+pgon <- 570
+gon0 <- get.gon(ww,pgon)
+# plot(get.fullgon(ww,pgon),type='l')
+# lines(c(0,0),c(-60,60))
+gon.w1 <- gon0[c(13:14,1:10)]
+gon.e <- gon0[11:12]
+gon.w1.close <- rbind(tail(get.line(ww,gon0[10]),1),head(get.line(ww,gon0[13]),1))
+
+gon.e.close <- rbind(tail(get.line(ww,gon0[12]),1),head(get.line(ww,gon0[11]),1))
+gon.e.close$x[] <- 360
+
+ww <- line.append(ww, gon.e.close)
+nl <- dim(ww$line)[1]
+ww <- gon.change(ww, pgon, c(gon.e,nl))
+
+ww <- line.append(ww, gon.w1.close)
+nl <- dim(ww$line)[1]
+ww <- gon.append(ww, c(gon.w1, nl), name=paste0(ww$names[pgon],":west"))
+
+## UK
+pgon <- 596
+gon0 <- get.gon(ww,pgon)
+# plot(get.fullgon(ww,pgon),type='l')
+# lines(c(0,0),c(-60,60))
+gon.w1 <- gon0[2]
+gon.w2 <- gon0[4]
+
+gon.w1.close <- rbind(tail(get.line(ww,gon0[2]),1),head(get.line(ww,gon0[2]),1))
+gon.w2.close <- rbind(tail(get.line(ww,gon0[4]),1),head(get.line(ww,gon0[4]),1))
+
+gon.e.close1 <- rbind(tail(get.line(ww,gon0[1]),1),head(get.line(ww,gon0[3]),1))
+gon.e.close1$x[] <- 360
+gon.e.close2 <- rbind(tail(get.line(ww,gon0[3]),1),head(get.line(ww,gon0[5]),1))
+gon.e.close2$x[] <- 360
+
+ww <- line.append(ww, gon.e.close1)
+ww <- line.append(ww, gon.e.close2)
+nl <- dim(ww$line)[1]
+ww <- gon.change(ww, pgon, c(gon0[1],nl-1,gon0[3],nl,gon0[5]))
+
+ww <- line.append(ww, gon.w1.close)
+nl <- dim(ww$line)[1]
+ww <- gon.append(ww, c(gon.w1, nl), name=paste0(ww$names[pgon],":west1"))
+ww <- line.append(ww, gon.w2.close)
+nl <- dim(ww$line)[1]
+ww <- gon.append(ww, c(gon.w2, nl), name=paste0(ww$names[pgon],":west2"))
+
+## Ghana
+pgon <- 607
+gon0 <- get.gon(ww,pgon)
+# plot(get.fullgon(ww,pgon),type='l')
+# lines(c(0,0),c(-60,60))
+gon.w1 <- gon0[2]
+gon.w2 <- gon0[4:5]
+
+gon.w1.close <- rbind(tail(get.line(ww,gon0[2]),1),head(get.line(ww,gon0[2]),1))
+gon.w2.close <- rbind(tail(get.line(ww,gon0[5]),1),head(get.line(ww,gon0[4]),1))
+
+gon.e.close1 <- rbind(tail(get.line(ww,gon0[1]),1),head(get.line(ww,gon0[3]),1))
+gon.e.close1$x[] <- 360
+gon.e.close2 <- rbind(tail(get.line(ww,gon0[3]),1),head(get.line(ww,gon0[6]),1))
+gon.e.close2$x[] <- 360
+
+ww <- line.append(ww, gon.e.close1)
+ww <- line.append(ww, gon.e.close2)
+nl <- dim(ww$line)[1]
+ww <- gon.change(ww, pgon, c(gon0[1],nl-1,gon0[3],nl,gon0[6:10]))
+
+ww <- line.append(ww, gon.w1.close)
+nl <- dim(ww$line)[1]
+ww <- gon.append(ww, c(gon.w1, nl), name=paste0(ww$names[pgon],":west1"))
+ww <- line.append(ww, gon.w2.close)
+nl <- dim(ww$line)[1]
+ww <- gon.append(ww, c(gon.w2, nl), name=paste0(ww$names[pgon],":west2"))
+
+## Togo
+pgon <- 1417
+gon0 <- get.gon(ww,pgon)
+# plot(get.fullgon(ww,pgon),type='l')
+# lines(c(0,0),c(-60,60))
+gon.e1 <- gon0[4]
+gon.e2 <- gon0[6:7]
+
+gon.e1.close <- rbind(tail(get.line(ww,gon0[4]),1),head(get.line(ww,gon0[4]),1))
+gon.e2.close <- rbind(tail(get.line(ww,gon0[7]),1),head(get.line(ww,gon0[6]),1))
+gon.e1.close$x[] <- 360
+gon.e2.close$x[] <- 360
+
+gon.w.close1 <- rbind(tail(get.line(ww,gon0[3]),1),head(get.line(ww,gon0[5]),1))
+gon.w.close2 <- rbind(tail(get.line(ww,gon0[5]),1),head(get.line(ww,gon0[8]),1))
+
+ww <- line.append(ww, gon.w.close1)
+ww <- line.append(ww, gon.w.close2)
+nl <- dim(ww$line)[1]
+ww <- gon.change(ww, pgon, c(gon0[1:3],nl-1,gon0[5],nl,gon0[8]))
+
+ww <- line.append(ww, gon.e1.close)
+nl <- dim(ww$line)[1]
+ww <- gon.append(ww, c(gon.e1, nl), name=paste0(ww$names[pgon],":east1"))
+ww <- line.append(ww, gon.e2.close)
+nl <- dim(ww$line)[1]
+ww <- gon.append(ww, c(gon.e2, nl), name=paste0(ww$names[pgon],":east2"))
+
+## Mali
+pgon <- 1005
+gon0 <- get.gon(ww,pgon)
+# plot(get.fullgon(ww,pgon),type='l')
+# lines(c(0,0),c(-60,60))
+gon.w1 <- gon0[c(9,1:2)]
+gon.e <- gon0[3:8]
+gon.w1.close <- rbind(tail(get.line(ww,gon0[2]),1),head(get.line(ww,gon0[9]),1))
+gon.e.close <- rbind(tail(get.line(ww,gon0[8]),1),head(get.line(ww,gon0[3]),1))
+gon.e.close$x[] <- 360
+
+ww <- line.append(ww, gon.e.close)
+nl <- dim(ww$line)[1]
+ww <- gon.change(ww, pgon, c(gon.e,nl))
+
+ww <- line.append(ww, gon.w1.close)
+nl <- dim(ww$line)[1]
+ww <- gon.append(ww, c(gon.w1, nl), name=paste0(ww$names[pgon],":west"))
+
+
+ant.closure <- data.frame(x = c(360,seq(360,0,length=10),0),
+                          y=c(tail(get.line(ww,152)$y,1),rep(-88,10),get.line(ww,153)$y[1]))
+ww <- line.append(ww, ant.closure)
+nl <- dim(ww$line)[1]
+ww <- gon.change(ww,121, c(get.gon(ww,121),nl))
+ww <- change.gon(ww,121, c(get.gon(ww,121),nl))
+# a last little cleaning (error is 1.E-13, so it should dissappear anyway in output)
+ww$x[ww$line$end[153]] <- 180
+
+ww <- map.LR(ww)
+map.export.bin(ww, outfile2)
+map.export.ascii(ww, outfile2, ndec=8)
+
+
