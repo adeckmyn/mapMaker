@@ -110,13 +110,16 @@ gon.change <- function(ww, i, data){
 }
 
 line.remove <- function(ww, i){
+# this changes line numbers, so gondata MUST be adapted!
+  i <- abs(i)
   if (any(abs(na.omit(ww$gondata)) == abs(i))) stop(paste("Line",i,"is still in use."))
   ilen <- ww$line$length[i] + 1 # include NA
 
   ww$x <- c(head(ww$x,ww$line$begin[i]-1),tail(ww$x,-(ww$line$end[i]+1)))
   ww$y <- c(head(ww$y,ww$line$begin[i]-1),tail(ww$y,-(ww$line$end[i]+1)))
   ww$line <- line.parse(ww)
- 
+  ww$gondata[which(ww$gondata > i )] <- ww$gondata[which(ww$gondata >  i)] - 1
+  ww$gondata[which(ww$gondata < -i)] <- ww$gondata[which(ww$gondata < -i)] + 1
   ww
 }  
 
