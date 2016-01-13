@@ -94,6 +94,7 @@ gon.remove <- function(ww, i){
   ilen <- ww$gon$length[i]
   ww$gondata <- c(head(ww$gondata,ww$gon$begin[i]-1), tail(ww$gondata, -(ww$gon$end[i]+1)))
   ww$gon <- gon.parse(ww)
+  ww$names <- ww$names[-i]
   ww
 }
 
