@@ -110,7 +110,7 @@ gon.change <- function(ww, i, data){
 }
 
 line.remove <- function(ww, i){
-  if (any(abs(ww$gondata) == i)) stop(paste("Line",i,"is still in use."))
+  if (any(abs(na.omit(ww$gondata)) == abs(i))) stop(paste("Line",i,"is still in use."))
   ilen <- ww$line$length[i] + 1 # include NA
 
   ww$x <- c(head(ww$x,ww$line$begin[i]-1),tail(ww$x,-(ww$line$end[i]+1)))

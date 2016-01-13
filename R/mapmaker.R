@@ -158,7 +158,7 @@ map.merge.segments <- function(ww,valence=NULL) {
 # valence 1 is impossible when all lines are still single segments
 # when valence=2 you could merge, except if it's a closed loop
   if (is.null(valence)) valence <- map.valence(ww)
-  if (any(valence==1)) warning("There appear to be loose points? If it's just Antarctica, that's OK.")
+  if (any(na.omit(valence)==1)) warning("There appear to be loose points? If it's just Antarctica, that's OK.")
 
   xlen <- length(ww$x)
   nline <- dim(ww$line)[1]
