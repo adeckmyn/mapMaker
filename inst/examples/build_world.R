@@ -8,8 +8,8 @@ assign(paste0(basename(outfile),"MapEnv"),"MYMAPS")
 assign(paste0(basename(outfile2),"MapEnv"),"MYMAPS")
 
 ######################
-
-ww <- map.make(read.worldmap(infile))
+w1 <- readShapePoly(infile)
+ww <- map.make(SpatialPolygons2map(w1))
 
 ### Antarctica: remove fake points & don't close polygon
 find.antarctica <- function(ww){
@@ -142,7 +142,9 @@ for (i in rev(sort(splits))) ww <- line.split(ww, i)
 
 ### A few additions:
 # NL: Ijsselmeer & Zuid-Flevoland
-wlakes <- map.make(read.worldmap(infile.lakes))
+wl1 <- readShapePoly(infile.lakes)
+wlakes <- SpatialPolygons2map(wl1)
+#wlakes <- map.make(read.worldmap(infile.lakes))
 ijssel <- get.line(wlakes,1078)
 flevo <- get.line(wlakes,1074)
 ww <- line.append(ww,ijssel)
